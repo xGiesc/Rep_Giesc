@@ -21,6 +21,7 @@ const IT_RULES: Array<[string, RegExp]> = [
   ['dips', /\bdip|parallele/],
   ['push_up', /flession|push[- ]?up/],
   ['chest_fly', /croci|\bfly\b|flyes?/],
+  ['chest_press_machine', /(chest|pectoral|pettorali?|petto).*(macchina|machine)|(macchina|machine).*(chest|petto|pettorali?)|chest press alla macchina|pec ?press/],
   ['incline_press', /(panca|chest press|distensioni).*inclinat|incline/],
   ['bench_press', /panca piana|panca|bench|chest press|distensioni/],
   ['overhead_press', /military|lento avanti|shoulder press|arnold|spinte.*(spalle|alto)|overhead press/],

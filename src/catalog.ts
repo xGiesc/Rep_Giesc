@@ -11,6 +11,7 @@ export type Equip = 'barbell' | 'dumbbell' | 'body only' | 'cable' | 'machine' |
 export const MOVEMENT_MUSCLES: Record<string, [string[], string[]]> = {
   bench_press: [['chest'], ['shoulders', 'triceps']],
   incline_press: [['chest'], ['shoulders', 'triceps']],
+  chest_press_machine: [['chest'], ['shoulders', 'triceps']],
   push_up: [['chest'], ['shoulders', 'triceps']],
   dips: [['chest', 'triceps'], ['shoulders']],
   chest_fly: [['chest'], ['shoulders']],
@@ -50,6 +51,12 @@ export const MOVEMENT_STEPS: Record<string, string[]> = {
     'Afferra il carico con una presa poco più larga delle spalle e portalo sopra il petto con le braccia tese.',
     'Scendi in modo controllato fino a sfiorare la parte centrale del petto, con i gomiti a circa 45–70° dal busto.',
     'Spingi verso l’alto fino a distendere le braccia, senza staccare glutei e testa dalla panca.',
+  ],
+  chest_press_machine: [
+    'Siediti alla macchina e regola il sedile in modo che le maniglie siano all’altezza del petto.',
+    'Appoggia bene schiena e testa allo schienale, con i piedi a terra e le scapole addotte.',
+    'Impugna le maniglie e spingi in avanti fino a distendere quasi del tutto le braccia, senza bloccare i gomiti.',
+    'Torna lentamente alla posizione di partenza, controllando il carico e senza staccare la schiena dallo schienale.',
   ],
   incline_press: [
     'Regola la panca a 30–45° e siediti con la schiena ben appoggiata e i piedi a terra.',
@@ -262,6 +269,7 @@ const ROWS: Row[] = [
   ['panca-piana-multipower', 'Panca piana al multipower', 'bench_press', 'machine', B],
   ['floor-press-bilanciere', 'Floor press con bilanciere', 'bench_press', 'barbell', I, 'Sdraiato a terra: il movimento si ferma quando i gomiti toccano il pavimento.'],
   ['floor-press-manubri', 'Floor press con manubri', 'bench_press', 'dumbbell', B, 'Sdraiato a terra: il movimento si ferma quando i gomiti toccano il pavimento.'],
+  ['chest-press-macchina', 'Chest press alla macchina', 'chest_press_machine', 'machine', B],
   ['chest-press-cavi', 'Chest press ai cavi', 'bench_press', 'cable', B],
   ['panca-inclinata-bilanciere', 'Panca inclinata con bilanciere', 'incline_press', 'barbell', I],
   ['panca-inclinata-manubri', 'Panca inclinata con manubri', 'incline_press', 'dumbbell', I],

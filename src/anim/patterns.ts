@@ -72,6 +72,40 @@ const supine = (hand: Pose['hand'], extra: Partial<Pose> = {}): Pose => ({
 const HANG: Pose['hand'] = { sh: [2, 56] };
 
 export const PATTERNS: Record<string, Pattern> = {
+  chest_press_machine: {
+    id: 'chest_press_machine',
+    label: 'Chest press alla macchina',
+    a: {
+      hip: [112, 194],
+      torso: -98,
+      ankle: [180, 200],
+      foot: 0,
+      kneeDir: [0, -1],
+      hand: { abs: [118, 146] },
+      elbowDir: [-1, 0.5],
+    },
+    b: {
+      hip: [112, 194],
+      torso: -98,
+      ankle: [180, 200],
+      foot: 0,
+      kneeDir: [0, -1],
+      hand: { abs: [166, 146] },
+      elbowDir: [-1, 0.5],
+    },
+    scene: (j: Joints, impl: Implement): Scene => ({
+      back: [
+        floor(),
+        rect(92, 196, 40, 8, COLORS.bench, 3), // seduta
+        rect(88, 120, 8, 78, COLORS.bench, 3), // schienale
+        rect(52, 100, 14, GROUND - 100, COLORS.metal, 3), // blocco pesi
+        rect(54, 106, 10, 8, COLORS.plate, 2),
+        rect(54, 120, 10, 8, COLORS.plate, 2),
+      ],
+      // leva della macchina dal perno alla mano
+      front: [seg([98, 140], j.wrist, 5, COLORS.metal), { k: 'circle', cx: 98, cy: 140, r: 4, c: COLORS.plate }],
+    }),
+  },
   biceps_curl: {
     id: 'biceps_curl',
     label: 'Curl per bicipiti',
