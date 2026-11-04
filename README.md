@@ -116,7 +116,7 @@ src/screens/                 Schede, Editor, Picklist esercizi, Allenamento,
 
 ## Marchio
 
-Ciano di default. Per la versione rossa: `EXPO_PUBLIC_BRAND=red` in fase di build (vedi `src/brand.ts`).
+Arancio/antracite di default. Alternative: `EXPO_PUBLIC_BRAND=cyan` o `red` in fase di build (vedi `src/brand.ts`).
 
 ## Notifiche e sblocco biometrico
 

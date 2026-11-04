@@ -1,8 +1,8 @@
-/** Marchio: ciano (predefinito) o rosso. Si sceglie con EXPO_PUBLIC_BRAND=red in fase di build. */
+/** Marchio: arancio (predefinito), ciano o rosso. Si sceglie con EXPO_PUBLIC_BRAND=cyan|red in fase di build. */
 export type BrandName = 'red' | 'cyan' | 'amber';
 
 export const BRAND: BrandName =
-  process.env.EXPO_PUBLIC_BRAND === 'red' ? 'red' : process.env.EXPO_PUBLIC_BRAND === 'amber' ? 'amber' : 'cyan';
+  process.env.EXPO_PUBLIC_BRAND === 'red' ? 'red' : process.env.EXPO_PUBLIC_BRAND === 'cyan' ? 'cyan' : 'amber';
 
 const BRANDS = {
   red: { accent: '#e30613', accentInk: '#e30613', accentSoft: '#fde8ea', accentText: '#ffffff', word: 'rosso', ink: '#14141a', cardAlt: '#f4f4f7', border: '#e4e4ea', muted: '#6b6b76' },
