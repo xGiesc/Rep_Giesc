@@ -123,3 +123,7 @@ Arancio/antracite di default. Alternative: `EXPO_PUBLIC_BRAND=cyan` o `red` in f
 - **Campanella** in alto per tutti gli utenti cloud. Atleta: scheda ricevuta, scheda in scadenza/scaduta, promemoria se non si allena da 7 giorni. Coach: schede degli atleti in scadenza/scadute, atleta fermo da 7+ giorni, allenamento completato, atleta senza schede (tocca la notifica per aprire l'atleta). Sono calcolate dai dati (nessuna tabella in più); lo stato "letta" è salvato sul dispositivo. Sono notifiche **dentro l'app**: non arrivano a app chiusa (servirebbero le notifiche push).
 - **Sblocco con impronta / Face ID**: facoltativo, si attiva da Account (solo web/PWA, su dispositivi che lo supportano). Blocco locale al riavvio e dopo 1 minuto in background.
 - Il coach, aprendo un atleta, parte direttamente dall'elenco di tutte le sue schede (Tutte / Da fare / Eseguite) e può aggiungerne.
+
+## Tema chiaro/scuro
+
+Da Account → Aspetto ognuno sceglie Chiaro o Scuro (antracite); la scelta resta sul dispositivo e la pagina si ricarica al cambio. Predefinito: chiaro.

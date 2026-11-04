@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Field, Header } from '../components';
 import { Profile, fetchProfile, joinPt, leavePt, updateName } from '../cloud';
+import { DARK, setTheme } from '../brand';
 import { biometricAvailable, biometricEnabled, disableBiometric, enableBiometric } from '../biometric';
 import { PrivacyScreen } from './PrivacyScreen';
 import { supabase } from '../supabase';
@@ -111,6 +112,15 @@ export function AccountScreen({
           </Card>
         ) : null}
 
+        {typeof window !== 'undefined' ? (
+          <Card style={{ gap: spacing.sm }}>
+            <Text style={styles.section}>Aspetto</Text>
+            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              <Button label="Chiaro" variant={DARK ? 'ghost' : 'primary'} onPress={() => DARK && setTheme(false)} style={{ flex: 1 }} />
+              <Button label="Scuro" variant={DARK ? 'primary' : 'ghost'} onPress={() => !DARK && setTheme(true)} style={{ flex: 1 }} />
+            </View>
+          </Card>
+        ) : null}
         {bioOk ? (
           <Card style={{ gap: spacing.sm }}>
             <Text style={styles.section}>Sblocco con impronta / Face ID</Text>

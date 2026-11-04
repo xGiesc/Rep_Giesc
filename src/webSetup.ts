@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { DARK } from './brand';
 
 /**
  * Solo versione web: collega manifest e icone così che "Aggiungi a schermata
@@ -27,4 +28,7 @@ export function setupWeb() {
     content: 'black-translucent',
   });
   document.title = 'GRG Personal Trainer';
+  // sfondo della pagina dietro all'app (rimbalzo/bordi) coerente con il tema
+  document.documentElement.style.backgroundColor = DARK ? '#262624' : '#ffffff';
+  document.body.style.backgroundColor = DARK ? '#262624' : '#ffffff';
 }

@@ -12,5 +12,26 @@ const BRANDS = {
 
 export const brand = BRANDS[BRAND];
 
-/** Tema scuro (antracite): EXPO_PUBLIC_THEME=dark in fase di build. */
-export const DARK = process.env.EXPO_PUBLIC_THEME === 'dark';
+/** Tema scuro: scelto dall'utente (Account → Aspetto) e ricordato sul dispositivo; in build EXPO_PUBLIC_THEME=dark lo rende predefinito. */
+export const THEME_KEY = 'theme';
+function readTheme(): boolean {
+  try {
+    const v = typeof window !== 'undefined' ? window.localStorage.getItem(THEME_KEY) : null;
+    if (v === 'dark') return true;
+    if (v === 'light') return false;
+  } catch {
+    /* niente */
+  }
+  return process.env.EXPO_PUBLIC_THEME === 'dark';
+}
+export const DARK = readTheme();
+
+/** Cambia tema: i colori sono letti all'avvio, quindi la pagina si ricarica. */
+export function setTheme(dark: boolean) {
+  try {
+    window.localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
+    window.location.reload();
+  } catch {
+    /* niente */
+  }
+}

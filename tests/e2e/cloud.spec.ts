@@ -186,6 +186,22 @@ test.describe('login e ruoli', () => {
     expect(errors).toEqual([]);
   });
 
+  test('interruttore tema chiaro/scuro: si ricorda dopo la ricarica', async ({ page }) => {
+    await setup(page, 'client', { expires: '2099-01-01' });
+    await page.goto(CLOUD);
+    const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(await bg()).toBe('rgb(255, 255, 255)');
+    await page.getByText('Account', { exact: true }).click();
+    await page.getByText('Scuro', { exact: true }).click();
+    await expect.poll(bg).toBe('rgb(38, 38, 36)');
+    await page.getByText('Account', { exact: true }).click();
+    await page.reload();
+    await expect.poll(bg).toBe('rgb(38, 38, 36)');
+    await page.getByText('Account', { exact: true }).click();
+    await page.getByText('Chiaro', { exact: true }).click();
+    await expect.poll(bg).toBe('rgb(255, 255, 255)');
+  });
+
   test('sblocco biometrico facoltativo (autenticatore simulato)', async ({ page, context }) => {
     await setup(page, 'client', { expires: '2099-01-01' });
     const cdp = await context.newCDPSession(page);
