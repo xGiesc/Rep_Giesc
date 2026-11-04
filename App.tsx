@@ -127,7 +127,7 @@ function CloudApp({ userId }: { userId: string }) {
 function CloudAppInner({ userId }: { userId: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [client, setClient] = useState<Profile | null>(null);
-  // Il PT parte dalla gestione ragazzi; può passare alla modalità allenamento
+  // Il PT parte dalla gestione atleti; può passare alla modalità allenamento
   const [ptMode, setPtMode, ptModeLoaded] = useStoredState<'manage' | 'train'>('ptmode', 'manage');
   const [ptTab, setPtTab] = useState<'clients' | 'account'>('clients');
   const reload = useCallback(() => {
@@ -155,7 +155,7 @@ function CloudAppInner({ userId }: { userId: string }) {
               onChanged={reload}
               onSwitch={{
                 label: 'Passa alla modalità allenamento',
-                hint: 'Per caricare e fare anche le tue schede di allenamento. La gestione dei ragazzi resta la tua schermata principale.',
+                hint: 'Per caricare e fare anche le tue schede di allenamento. La gestione degli atleti resta la tua schermata principale.',
                 onPress: () => setPtMode('train'),
               }}
             />
@@ -163,7 +163,7 @@ function CloudAppInner({ userId }: { userId: string }) {
         </View>
         <TabBar
           tabs={[
-            { key: 'clients', label: 'Ragazzi', icon: 'clients' },
+            { key: 'clients', label: 'Atleti', icon: 'clients' },
             { key: 'account', label: 'Account', icon: 'account' },
           ]}
           active={ptTab}
@@ -193,8 +193,8 @@ function CloudAppInner({ userId }: { userId: string }) {
               onSwitch={
                 isPt
                   ? {
-                      label: 'Torna ai miei ragazzi',
-                      hint: 'Torna alla gestione dei ragazzi che segui.',
+                      label: 'Torna ai miei atleti',
+                      hint: 'Torna alla gestione degli atleti che segui.',
                       onPress: () => {
                         setPtTab('clients');
                         setPtMode('manage');

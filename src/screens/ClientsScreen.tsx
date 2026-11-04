@@ -7,7 +7,7 @@ import { colors, spacing } from '../theme';
 
 type Row = Awaited<ReturnType<typeof fetchClientsOverview>>[number];
 
-/** Home del PT: tutti i ragazzi, con scadenze e ultimo allenamento per i controlli. */
+/** Home del PT: tutti i atleti, con scadenze e ultimo allenamento per i controlli. */
 export function ClientsScreen({ code, onOpen }: { code: string; onOpen: (c: Profile) => void }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   useEffect(() => {
@@ -18,18 +18,18 @@ export function ClientsScreen({ code, onOpen }: { code: string; onOpen: (c: Prof
 
   return (
     <View style={{ flex: 1 }}>
-      <Header title="I miei ragazzi" />
+      <Header title="I miei atleti" />
       <ScrollView contentContainerStyle={styles.list}>
         {rows === null ? <Text style={styles.muted}>Caricamento…</Text> : null}
         {rows && rows.length > 0 ? (
           <Text style={styles.summary}>
-            {rows.length} {rows.length === 1 ? 'ragazzo' : 'ragazzi'}
+            {rows.length} {rows.length === 1 ? 'atleta' : 'atleti'}
             {needCheck > 0 ? ` · ${needCheck} da controllare` : ' · tutto in regola'}
           </Text>
         ) : null}
         {rows?.length === 0 ? (
           <Card style={{ gap: spacing.sm }}>
-            <Text style={styles.name}>Nessun ragazzo collegato</Text>
+            <Text style={styles.name}>Nessun atleta collegato</Text>
             <Text style={styles.muted}>
               Dai loro il tuo codice: lo inseriscono in registrazione o da Account.
             </Text>

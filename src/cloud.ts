@@ -47,7 +47,7 @@ export type ClientOverview = {
   status: 'expired' | 'soon' | 'ok' | 'none';
 };
 
-/** Riepilogo di tutti i ragazzi del PT (home del PT). */
+/** Riepilogo di tutti i atleti del PT (home del PT). */
 export async function fetchClientsOverview(): Promise<ClientOverview[]> {
   const clients = await fetchClients();
   if (clients.length === 0) return [];

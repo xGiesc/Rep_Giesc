@@ -12,7 +12,7 @@ export function AccountScreen({
 }: {
   profile: Profile;
   onChanged: () => void;
-  /** Solo PT: passa tra gestione ragazzi e allenamento personale. */
+  /** Solo PT: passa tra gestione atleti e allenamento personale. */
   onSwitch?: { label: string; hint: string; onPress: () => void };
 }) {
   const [name, setName] = useState(profile.name);
@@ -50,7 +50,7 @@ export function AccountScreen({
             <Text style={styles.section}>Il tuo codice PT</Text>
             <Text style={styles.code}>{profile.invite_code}</Text>
             <Text style={styles.muted}>
-              Dallo ai tuoi ragazzi: lo inseriscono quando si registrano (o da Account) e
+              Dallo ai tuoi atleti: lo inseriscono quando si registrano (o da Account) e
               compaiono nella tua lista Clienti.
             </Text>
           </Card>

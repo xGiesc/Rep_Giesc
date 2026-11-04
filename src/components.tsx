@@ -49,6 +49,7 @@ export function Button({
         style={[
           styles.buttonText,
           variant === 'ghost' && { color: colors.text },
+          variant === 'danger' && { color: '#ffffff' },
         ]}
       >
         {label}

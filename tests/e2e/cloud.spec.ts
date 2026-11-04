@@ -115,11 +115,11 @@ test.describe('login e ruoli', () => {
     await expect(page.getByText(/Scaduta il/)).toBeVisible();
   });
 
-  test('PT: home = ragazzi, niente Schede/Storico, switch modalità, modifica schede del ragazzo', async ({ page }, info) => {
+  test('PT: home = atleti, niente Schede/Storico, switch modalità, modifica schede dell'atleta', async ({ page }, info) => {
     const errors = trackErrors(page);
     await setup(page, 'pt');
     await page.goto(CLOUD);
-    await expect(page.getByText('I miei ragazzi')).toBeVisible();
+    await expect(page.getByText('I miei atleti')).toBeVisible();
     await expectBanner(page);
     await expect(page.getByText('Luca').first()).toBeVisible();
     await expect(page.getByText(/Scheda scaduta il/)).toBeVisible();
@@ -137,8 +137,8 @@ test.describe('login e ruoli', () => {
     await expect(page.getByText('Push PT')).toBeVisible();
     await expect(page.getByText('Modifica', { exact: true })).toHaveCount(1);
     await page.getByText('Account', { exact: true }).click();
-    await page.getByText('Torna ai miei ragazzi').click();
-    await expect(page.getByText('I miei ragazzi')).toBeVisible();
+    await page.getByText('Torna ai miei atleti').click();
+    await expect(page.getByText('I miei atleti')).toBeVisible();
 
     await page.getByText('Luca').first().click();
     await page.getByText('Schede', { exact: true }).click();

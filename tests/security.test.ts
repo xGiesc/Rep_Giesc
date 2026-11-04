@@ -149,11 +149,11 @@ test('un falso PT (ruolo client) non può gestire nessuno', async () => {
   });
 });
 
-test('il PT gestisce solo i propri ragazzi', async () => {
+test('il PT gestisce solo i propri atleti', async () => {
   await as(PT, async () => {
     const plans = (await q('select id from public.plans order by id')).rows.map((r) => r.id);
     assert.deepEqual(plans, ['p-luca', 'p-pt'], 'vede le schede di Luca e le proprie, non quelle di Anna');
-    assert.equal(await affected(`update public.plans set name='Push B' where id='p-luca'`), 1, 'modifica scheda del ragazzo');
+    assert.equal(await affected(`update public.plans set name='Push B' where id='p-luca'`), 1, 'modifica scheda dell'atleta');
     assert.equal(await affected(`update public.plans set name='Hack' where id='p-anna'`), 0, 'non quella di Anna');
     assert.equal(await affected(`insert into public.plans(id,owner_id,name) values ('nuova','${LUCA}','Nuova')`), 1, 'crea scheda per il ragazzo');
     assert.ok(await denied(() => q(`insert into public.plans(id,owner_id,name) values ('nuova2','${ANNA}','No')`)), 'non per chi non è suo');
@@ -196,7 +196,7 @@ test('gli allenamenti: ognuno scrive solo i propri', async () => {
   });
 });
 
-test('collegarsi, scollegarsi e scollegare un ragazzo', async () => {
+test('collegarsi, scollegarsi e scollegare un atleta', async () => {
   const code = await as(PT, async () => (await q('select public.my_invite_code() as c')).rows[0].c as string);
   await as(ANNA, async () => {
     assert.equal((await q(`select public.join_pt('${code.toLowerCase()}') as ok`)).rows[0].ok, true, 'codice valido (anche minuscolo)');

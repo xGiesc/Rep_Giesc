@@ -12,7 +12,7 @@ App per gestire gli allenamenti in palestra (stile Coach Plus): crei le tue sche
 
 ## Account, PT e clienti (Supabase)
 
-Con il cloud attivo ogni persona accede con email e password e ha le sue schede e il suo storico. L’atleta **non può modificare le schede** (le assegna il PT; può solo aprirle, guardarle e, durante l’allenamento, aggiungere esercizi solo per quella seduta). Il **personal trainer** ha come schermata principale l’elenco dei **ragazzi** (con scadenze e ultimo allenamento, prima quelli da controllare); da Account può passare alla modalità allenamento per usare anche le proprie schede. Per ogni ragazzo crea/modifica/elimina le loro schede (compaiono subito sul loro telefono con la dicitura "Assegnata dal tuo personal trainer") e consulta il loro storico. I clienti si collegano al PT con il **codice PT** (6 caratteri, in Account del PT), in registrazione o dopo.
+Con il cloud attivo ogni persona accede con email e password e ha le sue schede e il suo storico. L’atleta **non può modificare le schede** (le assegna il PT; può solo aprirle, guardarle e, durante l’allenamento, aggiungere esercizi solo per quella seduta). Il **personal trainer** ha come schermata principale l’elenco dei **atleti** (con scadenze e ultimo allenamento, prima quelli da controllare); da Account può passare alla modalità allenamento per usare anche le proprie schede. Per ogni atleta crea/modifica/elimina le loro schede (compaiono subito sul loro telefono con la dicitura "Assegnata dal tuo personal trainer") e consulta il loro storico. I clienti si collegano al PT con il **codice PT** (6 caratteri, in Account del PT), in registrazione o dopo.
 
 Attivazione (una volta sola):
 
@@ -26,7 +26,7 @@ Senza queste chiavi l'app funziona solo sul dispositivo, senza login.
 
 ## Scadenza delle schede
 
-Ogni scheda può avere una **finestra temporale** (2, 4, 6, 8 o 12 settimane da oggi, oppure nessuna). Dopo la data la scheda risulta "scaduta" ed è il momento del controllo con il PT; nella home del PT i ragazzi con schede scadute o in scadenza (entro 7 giorni) compaiono per primi. Su ogni scheda si vede anche quanti allenamenti sono stati fatti.
+Ogni scheda può avere una **finestra temporale** (2, 4, 6, 8 o 12 settimane da oggi, oppure nessuna). Dopo la data la scheda risulta "scaduta" ed è il momento del controllo con il PT; nella home del PT i atleti con schede scadute o in scadenza (entro 7 giorni) compaiono per primi. Su ogni scheda si vede anche quanti allenamenti sono stati fatti.
 
 ## Catalogo esercizi
 
@@ -58,7 +58,7 @@ npm run test:e2e    # solo browser (dopo npm run build:test)
 Cosa controllano:
 
 - **Logica**: ogni esercizio ha nome, istruzioni, muscoli e un movimento animato; ogni fotogramma di ogni animazione è valido e dentro il riquadro; scadenze e riconoscimento dei nomi in italiano.
-- **Browser** (Chromium, schermo telefono 390 px e PC 1280 px): schede, apri scheda senza iniziare, animazione che si muove, allenamento, timer di recupero (parte, scorre, +15, salta, fine), esercizio aggiunto al volo, editor con scadenza e picklist, storico e dati dopo ricarica; login con banda del logo; atleta senza "Modifica"; PT con home dei ragazzi, cambio modalità e modifica schede del ragazzo; nessun errore in console e nessun elemento che sborda dallo schermo. Il cloud è simulato.
+- **Browser** (Chromium, schermo telefono 390 px e PC 1280 px): schede, apri scheda senza iniziare, animazione che si muove, allenamento, timer di recupero (parte, scorre, +15, salta, fine), esercizio aggiunto al volo, editor con scadenza e picklist, storico e dati dopo ricarica; login con banda del logo; atleta senza "Modifica"; PT con home dei atleti, cambio modalità e modifica schede dell'atleta; nessun errore in console e nessun elemento che sborda dallo schermo. Il cloud è simulato.
 
 Su GitHub i test partono a ogni push (scheda *Actions*): **se falliscono l'app non viene pubblicata**. Gli screenshot delle schermate principali si scaricano dal report di ogni esecuzione.
 
@@ -108,7 +108,7 @@ src/screens/                 Schede, Editor, Picklist esercizi, Allenamento,
 
 ## Sicurezza
 
-- `supabase/schema.sql` va incollato in Supabase → SQL Editor (si può rieseguire). Attiva RLS su tutte le tabelle, toglie ogni permesso a chi non è loggato, l'atleta non può modificare schede, ruolo, PT o codice invito; il PT vede/gestisce solo i propri ragazzi.
+- `supabase/schema.sql` va incollato in Supabase → SQL Editor (si può rieseguire). Attiva RLS su tutte le tabelle, toglie ogni permesso a chi non è loggato, l'atleta non può modificare schede, ruolo, PT o codice invito; il PT vede/gestisce solo i propri atleti.
 - `supabase/verify.sql`: controlli da lanciare dopo lo schema.
 - `npm run test:security` esegue davvero lo schema su un Postgres in memoria e prova le regole (fa parte della CI: se fallisce non si pubblica).
 - Mai mettere nell'app la chiave `sb_secret_…` (solo quella `sb_publishable_…`). Se una secret key è stata condivisa, rigenerala in Supabase → Settings → API Keys.
