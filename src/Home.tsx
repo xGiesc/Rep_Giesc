@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { PlanEditor } from './screens/PlanEditor';
@@ -168,8 +169,9 @@ export function TabBar({
   active: string;
   onChange: (key: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.tabBar}>
+    <View style={[styles.tabBar, { paddingBottom: 4 + insets.bottom }]}>
       {tabs.map((t) => (
         <TabButton key={t.key} label={t.label} icon={t.icon} active={active === t.key} onPress={() => onChange(t.key)} />
       ))}

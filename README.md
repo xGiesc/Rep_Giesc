@@ -47,6 +47,23 @@ I dati restano salvati nel browser del dispositivo che usi.
 
 > Prima pubblicazione: su GitHub vai in *Settings → Pages* e come *Source* scegli **GitHub Actions**.
 
+## Test automatici
+
+```bash
+npm test            # tipi + logica + browser (telefono e PC)
+npm run test:logic  # solo logica: catalogo, animazioni, scadenze
+npm run test:e2e    # solo browser (dopo npm run build:test)
+```
+
+Cosa controllano:
+
+- **Logica**: ogni esercizio ha nome, istruzioni, muscoli e un movimento animato; ogni fotogramma di ogni animazione è valido e dentro il riquadro; scadenze e riconoscimento dei nomi in italiano.
+- **Browser** (Chromium, schermo telefono 390 px e PC 1280 px): schede, apri scheda senza iniziare, animazione che si muove, allenamento, timer di recupero (parte, scorre, +15, salta, fine), esercizio aggiunto al volo, editor con scadenza e picklist, storico e dati dopo ricarica; login con banda del logo; atleta senza "Modifica"; PT con home dei ragazzi, cambio modalità e modifica schede del ragazzo; nessun errore in console e nessun elemento che sborda dallo schermo. Il cloud è simulato.
+
+Su GitHub i test partono a ogni push (scheda *Actions*): **se falliscono l'app non viene pubblicata**. Gli screenshot delle schermate principali si scaricano dal report di ogni esecuzione.
+
+Non c'è invece un confronto pixel-per-pixel degli screenshot (cambia con font e sistema): l'aspetto estetico va ancora guardato a occhio.
+
 ## Avvio sul PC (sviluppo, serve Node.js)
 
 ```bash

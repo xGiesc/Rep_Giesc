@@ -13,7 +13,10 @@ export const fromIsoDate = (s: string) => {
 };
 
 /** Data di scadenza tra `weeks` settimane da oggi. */
-export const inWeeks = (weeks: number) => toIsoDate(new Date(startOfDay(new Date()).getTime() + weeks * 7 * DAY));
+export const inWeeks = (weeks: number) => {
+  const t = startOfDay(new Date());
+  return toIsoDate(new Date(t.getFullYear(), t.getMonth(), t.getDate() + weeks * 7));
+};
 
 /** Giorni mancanti (negativo = scaduta da n giorni). */
 export const daysLeft = (iso: string) =>

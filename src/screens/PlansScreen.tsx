@@ -1,7 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Header } from '../components';
-import { Logo } from '../Logo';
 import { colors, spacing } from '../theme';
 import { expiryInfo } from '../expiry';
 import { Plan, Session } from '../types';
@@ -34,11 +33,6 @@ export function PlansScreen({
       <Header
         title={title}
         onBack={onBack}
-        right={
-          onBack ? undefined : (
-            <Logo width={82} height={35} />
-          )
-        }
       />
       <ScrollView contentContainerStyle={styles.list}>
         {plans.length === 0 ? (

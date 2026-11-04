@@ -1,8 +1,9 @@
-name: Pubblica su GitHub Pages
+name: Test e pubblica su GitHub Pages
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -11,11 +12,52 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Se un test fallisce, l'app NON viene pubblicata.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Controllo dei tipi
+        run: npm run typecheck
+
+      - name: Test di logica (catalogo, animazioni, scadenze)
+        run: npm run test:logic
+
+      - name: Build delle versioni di prova
+        run: npm run build:test
+
+      - name: Installa il browser di prova
+        run: npx playwright install --with-deps chromium
+
+      - name: Test nel browser (telefono e PC)
+        run: npm run test:e2e
+
+      - name: Salva report e screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-test
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+
   build:
+    needs: test
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +82,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Card, Header } from '../components';
-import { Logo } from '../Logo';
 import { Profile, fetchClientsOverview } from '../cloud';
 import { ago, daysLeft, fmtDate } from '../expiry';
 import { colors, spacing } from '../theme';
@@ -19,7 +18,7 @@ export function ClientsScreen({ code, onOpen }: { code: string; onOpen: (c: Prof
 
   return (
     <View style={{ flex: 1 }}>
-      <Header title="I miei ragazzi" right={<Logo width={70} height={30} />} />
+      <Header title="I miei ragazzi" />
       <ScrollView contentContainerStyle={styles.list}>
         {rows === null ? <Text style={styles.muted}>Caricamento…</Text> : null}
         {rows && rows.length > 0 ? (

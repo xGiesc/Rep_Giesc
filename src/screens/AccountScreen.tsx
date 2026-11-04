@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Field, Header } from '../components';
-import { Logo } from '../Logo';
 import { Profile, fetchProfile, joinPt, leavePt, updateName } from '../cloud';
 import { supabase } from '../supabase';
 import { colors, spacing } from '../theme';
@@ -30,7 +29,6 @@ export function AccountScreen({
     <View style={{ flex: 1 }}>
       <Header title="Account" />
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <Logo width="100%" height={90} />
         <Card style={{ gap: spacing.md }}>
           <Text style={styles.muted}>
             {profile.email} · {profile.role === 'pt' ? 'Personal trainer' : 'Atleta'}

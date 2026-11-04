@@ -225,6 +225,7 @@ export function WorkoutScreen({
                   placeholderTextColor={colors.muted}
                 />
                 <Pressable
+                  testID={`check-${ei}-${si}`}
                   onPress={() => toggleDone(ei, si)}
                   style={[
                     styles.check,

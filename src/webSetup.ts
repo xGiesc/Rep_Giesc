@@ -18,7 +18,7 @@ export function setupWeb() {
 
   add('link', { rel: 'manifest', href: 'manifest.json' });
   add('link', { rel: 'apple-touch-icon', href: 'icons/icon-180.png' });
-  add('meta', { name: 'theme-color', content: '#ffffff' });
+  add('meta', { name: 'theme-color', content: '#000000' });
   add('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' });
   add('meta', { name: 'mobile-web-app-capable', content: 'yes' });
   add('meta', { name: 'apple-mobile-web-app-title', content: 'GRG Personal Trainer' });

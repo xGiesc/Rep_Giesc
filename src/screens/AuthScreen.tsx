@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Field } from '../components';
-import { Logo } from '../Logo';
+import { Banner } from '../Banner';
 import { supabase } from '../supabase';
 import { colors, spacing } from '../theme';
 
@@ -46,8 +46,9 @@ export function AuthScreen() {
   const ok = email.includes('@') && password.length >= 6 && (mode === 'login' || name.trim());
 
   return (
-    <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-      <Logo width="100%" height={150} />
+    <View style={{ flex: 1 }}>
+      <Banner large />
+      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
       <View style={styles.switch}>
         <Button
           label="Accedi"
@@ -95,6 +96,7 @@ export function AuthScreen() {
         disabled={busy || !ok}
       />
     </ScrollView>
+    </View>
   );
 }
 

@@ -12,6 +12,7 @@ import { AuthScreen } from './src/screens/AuthScreen';
 import { ClientsScreen } from './src/screens/ClientsScreen';
 import { useStoredState } from './src/storage';
 import { cloudEnabled, supabase } from './src/supabase';
+import { Banner } from './src/Banner';
 import { colors } from './src/theme';
 import { Plan, Session } from './src/types';
 import { setupWeb } from './src/webSetup';
@@ -53,7 +54,24 @@ const SAMPLE_PLANS: Plan[] = [
 
 
 /** Senza cloud configurato: tutto sul dispositivo, senza login. */
+function Page({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <Banner />
+      <View style={{ flex: 1 }}>{children}</View>
+    </View>
+  );
+}
+
 function LocalApp() {
+  return (
+    <Page>
+      <LocalAppInner />
+    </Page>
+  );
+}
+
+function LocalAppInner() {
   const [plans, setPlans, plansLoaded] = useStoredState<Plan[]>('plans', []);
   const [history, setHistory] = useStoredState<Session[]>('history', []);
   const [seeded, setSeeded, seededLoaded] = useStoredState<boolean>('seeded', false);
@@ -99,6 +117,14 @@ function ClientView({ me, client, onBack }: { me: string; client: Profile; onBac
 }
 
 function CloudApp({ userId }: { userId: string }) {
+  return (
+    <Page>
+      <CloudAppInner userId={userId} />
+    </Page>
+  );
+}
+
+function CloudAppInner({ userId }: { userId: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [client, setClient] = useState<Profile | null>(null);
   // Il PT parte dalla gestione ragazzi; può passare alla modalità allenamento
@@ -204,8 +230,8 @@ function Center({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.root}>
-        <StatusBar style="dark" />
+      <SafeAreaView style={styles.root} edges={['top']}>
+        <StatusBar style="light" />
         <View style={styles.container}>{cloudEnabled ? <CloudGate /> : <LocalApp />}</View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -213,7 +239,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
+  root: { flex: 1, backgroundColor: '#000' },
   // Su web limita la larghezza per un aspetto "da telefono" anche sul PC
-  container: { flex: 1, width: '100%', maxWidth: 560, alignSelf: 'center' },
+  container: { flex: 1, width: '100%', maxWidth: 560, alignSelf: 'center', backgroundColor: colors.bg },
 });
