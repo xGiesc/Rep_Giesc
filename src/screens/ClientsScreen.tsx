@@ -66,7 +66,7 @@ export function ClientsScreen({ code, onOpen }: { code: string; onOpen: (c: Prof
                     style={[
                       styles.pillText,
                       r.status === 'expired' && { color: colors.accentText },
-                      r.status === 'soon' && { color: colors.accent },
+                      r.status === 'soon' && { color: colors.accentInk },
                     ]}
                   >
                     {r.status === 'none' && r.plans === 0
@@ -109,8 +109,8 @@ const styles = StyleSheet.create({
   avatarText: { color: '#fff', fontWeight: '900', fontSize: 18 },
   name: { color: colors.text, fontSize: 18, fontWeight: '800' },
   muted: { color: colors.muted, fontSize: 13 },
-  arrow: { color: colors.accent, fontSize: 26, fontWeight: '700' },
-  code: { color: colors.accent, fontSize: 34, fontWeight: '900', letterSpacing: 4 },
+  arrow: { color: colors.accentInk, fontSize: 26, fontWeight: '700' },
+  code: { color: colors.accentInk, fontSize: 34, fontWeight: '900', letterSpacing: 4 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   pill: { backgroundColor: colors.cardAlt, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   pillText: { color: colors.text, fontSize: 12, fontWeight: '700' },

@@ -262,11 +262,11 @@ export function WorkoutScreen({
 
 const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.md },
-  progress: { color: colors.accent, fontSize: 18, fontWeight: '700' },
+  progress: { color: colors.accentInk, fontSize: 18, fontWeight: '700' },
   exHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   exName: { color: colors.text, fontSize: 18, fontWeight: '700' },
   exMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  exInfo: { color: colors.accent, fontSize: 13, fontWeight: '700' },
+  exInfo: { color: colors.accentInk, fontSize: 13, fontWeight: '700' },
   setRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   colLabel: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   setNum: { color: colors.muted, fontSize: 16, fontWeight: '600' },

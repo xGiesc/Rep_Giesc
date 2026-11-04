@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: { color: colors.text, fontSize: 30, fontWeight: '900', letterSpacing: -0.5, flexShrink: 1 },
-  back: { color: colors.accent, fontSize: 16, fontWeight: '700' },
+  back: { color: colors.accentInk, fontSize: 16, fontWeight: '700' },
   chip: {
     paddingVertical: 8,
     paddingHorizontal: 14,

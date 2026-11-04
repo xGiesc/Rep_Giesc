@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { brand } from '../brand';
 import { Card, Chip, Header } from '../components';
 import { fmtRest } from '../format';
 import { LEVEL_IT, equipmentLabel, findExercise, muscleLabel } from '../exerciseDb';
@@ -48,7 +49,7 @@ export function ExerciseDetail({
               secondary={secondary}
             />
             <Text style={styles.mediaHint}>
-              Animazione schematica · in rosso i muscoli che lavorano
+              Animazione schematica · in {brand.word} i muscoli che lavorano
             </Text>
           </View>
         ) : (
@@ -72,7 +73,7 @@ export function ExerciseDetail({
                 ))}
               </View>
               <Text style={styles.muted}>
-                In rosso i muscoli principali, in grigio i secondari.
+                In {brand.word} i muscoli principali, in grigio i secondari.
               </Text>
               <Text style={styles.muted}>
                 Attrezzo: {equipmentLabel(ex.equipment)} · Livello: {LEVEL_IT[ex.level] ?? ex.level}

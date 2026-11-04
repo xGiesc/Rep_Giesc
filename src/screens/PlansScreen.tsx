@@ -1,8 +1,9 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Header } from '../components';
 import { colors, spacing } from '../theme';
 import { expiryInfo } from '../expiry';
+import { cycleState } from '../rotation';
 import { Plan, Session } from '../types';
 
 export function PlansScreen({
@@ -28,19 +29,36 @@ export function PlansScreen({
   history?: Session[];
   onBack?: () => void;
 }) {
+  const [showDone, setShowDone] = useState(false);
+  const cyc = cycleState(plans, history);
+  const shown = showDone ? cyc.done : cyc.todo;
   return (
     <View style={{ flex: 1 }}>
       <Header
         title={title}
         onBack={onBack}
       />
+      <View style={styles.toggle}>
+        {([['todo', `Da fare (${cyc.todo.length})`], ['done', `Eseguite (${cyc.done.length})`]] as const).map(([k, label]) => {
+          const on = (k === 'done') === showDone;
+          return (
+            <Pressable key={k} testID={`filter-${k}`} onPress={() => setShowDone(k === 'done')} style={[styles.seg, on && styles.segOn]}>
+              <Text style={[styles.segText, on && { color: colors.accentText }]}>{label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
       <ScrollView contentContainerStyle={styles.list}>
-        {plans.length === 0 ? (
+        {shown.length === 0 ? (
           <Text style={styles.empty}>
-            {canEdit ? 'Nessuna scheda. Creane una per iniziare ad allenarti.' : 'Nessuna scheda per ora: il tuo personal trainer te la assegnerà qui.'}
+            {showDone
+              ? 'Nessuna scheda eseguita in questo giro.'
+              : plans.length === 0
+                ? canEdit ? 'Nessuna scheda. Creane una per iniziare ad allenarti.' : 'Nessuna scheda per ora: il tuo personal trainer te la assegnerà qui.'
+                : 'Hai fatto tutto! Guarda tra le eseguite.'}
           </Text>
         ) : null}
-        {plans.map((plan) => (
+        {shown.map((plan) => (
           <Card key={plan.id} style={{ gap: spacing.md }}>
             <Text style={styles.planName}>{plan.name}</Text>
             {plan.byPt && canStart ? (
@@ -63,7 +81,7 @@ export function PlansScreen({
                         style={[
                           styles.pillText,
                           ex.tone === 'expired' && { color: colors.accentText },
-                          ex.tone === 'soon' && { color: colors.accent },
+                          ex.tone === 'soon' && { color: colors.accentInk },
                         ]}
                       >
                         {ex.text}
@@ -121,6 +139,16 @@ export function PlansScreen({
 }
 
 const styles = StyleSheet.create({
+  toggle: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.lg,
+    backgroundColor: colors.cardAlt,
+    borderRadius: 999,
+    padding: 4,
+  },
+  seg: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 999 },
+  segOn: { backgroundColor: colors.accent },
+  segText: { color: colors.text, fontWeight: '800', fontSize: 13 },
   list: { padding: spacing.lg, gap: spacing.md },
   planName: { color: colors.text, fontSize: 22, fontWeight: '900', letterSpacing: -0.3 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
@@ -131,7 +159,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   pillText: { color: colors.text, fontSize: 12, fontWeight: '700' },
-  byPt: { color: colors.accent, fontSize: 12, fontWeight: '700' },
+  byPt: { color: colors.accentInk, fontSize: 12, fontWeight: '700' },
   muted: { color: colors.muted, fontSize: 13 },
   row: { flexDirection: 'row', gap: spacing.sm },
   empty: { color: colors.muted, textAlign: 'center', marginTop: spacing.xl },

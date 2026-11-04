@@ -105,3 +105,15 @@ src/screens/                 Schede, Editor, Picklist esercizi, Allenamento,
 - Nomi degli esercizi in italiano
 - Backup/sincronizzazione su cloud
 - Pubblicazione negli store con EAS Build
+
+## Sicurezza
+
+- `supabase/schema.sql` va incollato in Supabase → SQL Editor (si può rieseguire). Attiva RLS su tutte le tabelle, toglie ogni permesso a chi non è loggato, l'atleta non può modificare schede, ruolo, PT o codice invito; il PT vede/gestisce solo i propri ragazzi.
+- `supabase/verify.sql`: controlli da lanciare dopo lo schema.
+- `npm run test:security` esegue davvero lo schema su un Postgres in memoria e prova le regole (fa parte della CI: se fallisce non si pubblica).
+- Mai mettere nell'app la chiave `sb_secret_…` (solo quella `sb_publishable_…`). Se una secret key è stata condivisa, rigenerala in Supabase → Settings → API Keys.
+- Consigliato in Supabase → Authentication: password minima 8 caratteri, rate limit attivi, (facoltativo) CAPTCHA.
+
+## Marchio
+
+Rosso di default. Per la versione ciano: `EXPO_PUBLIC_BRAND=cyan` in fase di build (vedi `src/brand.ts`).

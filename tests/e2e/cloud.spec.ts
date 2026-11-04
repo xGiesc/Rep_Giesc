@@ -8,7 +8,7 @@ type Role = 'client' | 'pt';
 const PT_ID = 'pt1';
 const CLIENT_ID = 'u1';
 
-async function setup(page: Page, role: Role, opts: { loggedIn?: boolean } = {}) {
+async function setup(page: Page, role: Role, opts: { loggedIn?: boolean; expires?: string } = {}) {
   const loggedIn = opts.loggedIn ?? true;
   const uid = role === 'client' ? CLIENT_ID : PT_ID;
   const me = {
@@ -27,7 +27,7 @@ async function setup(page: Page, role: Role, opts: { loggedIn?: boolean } = {}) 
     owner_id: CLIENT_ID,
     created_by: PT_ID,
     created_at: '2026-01-01',
-    expires_at: '2020-01-01',
+    expires_at: opts.expires ?? '2020-01-01',
   };
 
   await page.route('**/mock.supabase.co/**', async (route) => {
@@ -37,7 +37,8 @@ async function setup(page: Page, role: Role, opts: { loggedIn?: boolean } = {}) 
     const url = req.url();
     const single = (req.headers()['accept'] ?? '').includes('vnd.pgrst.object');
     let body: unknown = {};
-    if (url.includes('/rest/v1/profiles')) {
+    if (url.includes('/rest/v1/rpc/my_invite_code')) body = role === 'pt' ? 'ABC123' : null;
+    else if (url.includes('/rest/v1/profiles')) {
       if (url.includes('id=eq')) body = single ? me : [me];
       else body = role === 'pt' ? [me, luca] : [me];
     } else if (url.includes('/rest/v1/plans')) body = req.method() === 'GET' ? [plan] : [];
@@ -76,23 +77,42 @@ test.describe('login e ruoli', () => {
     expect(errors).toEqual([]);
   });
 
-  test('atleta: vede la scheda del PT ma non può modificarla', async ({ page }, info) => {
+  test('atleta: home = solo la scheda prevista, Schede con Da fare/Eseguite, nessuna modifica', async ({ page }, info) => {
     const errors = trackErrors(page);
-    await setup(page, 'client');
+    await setup(page, 'client', { expires: '2099-01-01' });
     await page.goto(CLOUD);
+    await expect(page.getByText('ALLENAMENTO PREVISTO')).toBeVisible();
     await expect(page.getByText('Push PT')).toBeVisible();
     await expectBanner(page);
+    await expect(page.getByText('Inizia allenamento')).toBeVisible();
+    await expect(page.getByText('Modifica', { exact: true })).toHaveCount(0);
+    await expectNoOverflow(page, 'home atleta');
+    await snap(page, info, 'atleta-home');
+    await page.getByText('Schede', { exact: true }).click();
+    await expect(page.getByText('Push PT')).toBeVisible();
     await expect(page.getByText('Apri', { exact: true })).toHaveCount(1);
     await expect(page.getByText('Inizia', { exact: true })).toHaveCount(1);
     await expect(page.getByText('Modifica', { exact: true })).toHaveCount(0);
     await expect(page.getByText('+ Nuova scheda')).toHaveCount(0);
     await expect(page.getByText('Assegnata dal tuo personal trainer')).toBeVisible();
-    await expect(page.getByText(/Scaduta il/)).toBeVisible();
     await expectNoOverflow(page, 'schede atleta');
     await snap(page, info, 'atleta-schede');
+    await page.getByTestId('filter-done').click();
+    await expect(page.getByText('Push PT')).toHaveCount(0);
+    await page.getByTestId('filter-todo').click();
     await page.getByText('Apri', { exact: true }).click();
     await expect(page.getByText('Inizia allenamento')).toBeVisible();
     expect(errors).toEqual([]);
+  });
+
+  test('atleta: scheda scaduta → nessun allenamento previsto, compare tra le eseguite', async ({ page }) => {
+    await setup(page, 'client');
+    await page.goto(CLOUD);
+    await expect(page.getByText('Nessun allenamento previsto')).toBeVisible();
+    await page.getByText('Schede', { exact: true }).click();
+    await page.getByTestId('filter-done').click();
+    await expect(page.getByText('Push PT')).toBeVisible();
+    await expect(page.getByText(/Scaduta il/)).toBeVisible();
   });
 
   test('PT: home = ragazzi, niente Schede/Storico, switch modalità, modifica schede del ragazzo', async ({ page }, info) => {
@@ -111,15 +131,18 @@ test.describe('login e ruoli', () => {
     await page.getByText('Account', { exact: true }).click();
     await expect(page.getByText('ABC123')).toBeVisible();
     await page.getByText('Passa alla modalità allenamento').click();
-    await expect(page.getByText('Push PT')).toBeVisible();
     await expect(page.getByText('Storico', { exact: true })).toBeVisible();
+    await page.getByText('Schede', { exact: true }).click();
+    await page.getByTestId('filter-done').click();
+    await expect(page.getByText('Push PT')).toBeVisible();
     await expect(page.getByText('Modifica', { exact: true })).toHaveCount(1);
     await page.getByText('Account', { exact: true }).click();
     await page.getByText('Torna ai miei ragazzi').click();
     await expect(page.getByText('I miei ragazzi')).toBeVisible();
 
     await page.getByText('Luca').first().click();
-    await expect(page.getByText('Schede di Luca')).toBeVisible();
+    await page.getByText('Schede', { exact: true }).click();
+    await page.getByTestId('filter-done').click();
     await expect(page.getByText('Modifica', { exact: true })).toHaveCount(1);
     await expect(page.getByText('Inizia', { exact: true })).toHaveCount(0);
     await snap(page, info, 'pt-schede-ragazzo');

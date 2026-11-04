@@ -1,3 +1,5 @@
+import { brand } from './brand';
+
 export const colors = {
   bg: '#ffffff',
   card: '#ffffff',
@@ -6,9 +8,10 @@ export const colors = {
   ink: '#14141a',
   text: '#14141a',
   muted: '#6b6b76',
-  accent: '#e30613',
-  accentSoft: '#fde8ea',
-  accentText: '#ffffff',
+  accent: brand.accent,
+  accentInk: brand.accentInk,
+  accentSoft: brand.accentSoft,
+  accentText: brand.accentText,
   success: '#14141a',
   danger: '#14141a',
 };

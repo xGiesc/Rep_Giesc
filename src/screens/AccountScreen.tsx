@@ -110,5 +110,5 @@ const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.md },
   section: { color: colors.text, fontSize: 16, fontWeight: '700' },
   muted: { color: colors.muted, fontSize: 13 },
-  code: { color: colors.accent, fontSize: 34, fontWeight: '800', letterSpacing: 4 },
+  code: { color: colors.accentInk, fontSize: 34, fontWeight: '800', letterSpacing: 4 },
 });

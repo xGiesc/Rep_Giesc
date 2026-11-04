@@ -23,6 +23,11 @@ export function AuthScreen() {
       const { error } = await supabase.auth.signInWithPassword({ email: mail, password });
       if (error) setMsg('Email o password non corrette.');
     } else {
+      if (password.length < 8) {
+        setBusy(false);
+        setMsg('La password deve avere almeno 8 caratteri.');
+        return;
+      }
       const { data, error } = await supabase.auth.signUp({
         email: mail,
         password,
@@ -33,7 +38,7 @@ export function AuthScreen() {
           /registered|already/i.test(error.message)
             ? 'Questa email è già registrata: usa "Accedi".'
             : /password/i.test(error.message)
-              ? 'La password deve avere almeno 6 caratteri.'
+              ? 'La password deve avere almeno 8 caratteri.'
               : 'Registrazione non riuscita: ' + error.message,
         );
       } else if (!data.session) {

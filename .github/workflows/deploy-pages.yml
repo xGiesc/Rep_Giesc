@@ -35,6 +35,8 @@ jobs:
 
       - name: Test di logica (catalogo, animazioni, scadenze)
         run: npm run test:logic
+      - name: Test sicurezza database (RLS)
+        run: npm run test:security
 
       - name: Build delle versioni di prova
         run: npm run build:test

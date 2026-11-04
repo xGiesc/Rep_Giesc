@@ -7,8 +7,17 @@ test.describe('app locale', () => {
     const errors = trackErrors(page);
     await page.goto(LOCAL);
 
-    // --- schede
-    await expect(page.getByText('Le mie schede')).toBeVisible();
+    // --- home: solo l'allenamento previsto
+    await expect(page.getByText('ALLENAMENTO PREVISTO')).toBeVisible();
+    await expect(page.getByText('Push (esempio)')).toBeVisible();
+    await expect(page.getByText('Apri', { exact: true })).toHaveCount(1);
+    await expectBanner(page);
+    await expectNoOverflow(page, 'home');
+    await snap(page, info, '00-home');
+
+    // --- schede: tutte, con Da fare / Eseguite
+    await page.getByText('Schede', { exact: true }).click();
+    await expect(page.getByText(/Da fare \(\d+\)/)).toBeVisible();
     await expect(page.getByText('Push (esempio)')).toBeVisible();
     await expect(page).toHaveTitle('GRG Personal Trainer');
     await expect(page.locator('link[rel=manifest]')).toHaveCount(1);
@@ -109,7 +118,9 @@ test.describe('app locale', () => {
     await expect(page.getByText('Storico').first()).toBeVisible();
     await snap(page, info, '07-storico');
     await page.reload();
+    await expect(page.getByText('ALLENAMENTO PREVISTO')).toBeVisible();
     await page.getByText('Schede', { exact: true }).click();
+    await page.getByTestId('filter-done').click();
     await expect(page.getByText('Push (esempio)')).toBeVisible();
     await expect(page.getByText(/1 allenamento fatto/)).toBeVisible();
     await page.getByText('Modifica', { exact: true }).first().click();

@@ -5,6 +5,7 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { PlanEditor } from './screens/PlanEditor';
 import { PlanView } from './screens/PlanView';
+import { NextWorkout } from './screens/NextWorkout';
 import { PlansScreen } from './screens/PlansScreen';
 import { WorkoutScreen } from './screens/WorkoutScreen';
 import { colors, spacing } from './theme';
@@ -18,7 +19,7 @@ type Route =
 
 export type ExtraTab = { key: string; label: string; icon?: IconName; render: () => React.ReactNode };
 
-export type IconName = 'plans' | 'history' | 'clients' | 'account';
+export type IconName = 'home' | 'plans' | 'history' | 'clients' | 'account';
 
 /**
  * Schermate principali (schede, allenamento, storico) per un insieme di dati:
@@ -49,7 +50,7 @@ export function Home({
   onBack?: () => void;
   extraTabs?: ExtraTab[];
 }) {
-  const [tab, setTab] = useState<string>('plans');
+  const [tab, setTab] = useState<string>('home');
   const [route, setRoute] = useState<Route>({ name: 'tabs' });
   const goHome = () => setRoute({ name: 'tabs' });
 
@@ -100,6 +101,17 @@ export function Home({
       <View style={{ flex: 1 }}>
         {extra ? (
           extra.render()
+        ) : tab === 'home' ? (
+          <NextWorkout
+            plans={plans}
+            history={history}
+            title={plansTitle ? plansTitle : 'Oggi'}
+            canStart={canTrain}
+            onStart={(plan) => setRoute({ name: 'workout', plan })}
+            onOpen={(plan) => setRoute({ name: 'view', plan })}
+            onAll={() => setTab('plans')}
+            onBack={onBack}
+          />
         ) : tab === 'plans' ? (
           <PlansScreen
             plans={plans}
@@ -119,6 +131,7 @@ export function Home({
       </View>
       <TabBar
         tabs={[
+          { key: 'home', label: 'Home', icon: 'home' },
           { key: 'plans', label: 'Schede', icon: 'plans' },
           { key: 'history', label: 'Storico', icon: 'history' },
           ...extraTabs.map((t) => ({ key: t.key, label: t.label, icon: t.icon ?? ('account' as IconName) })),
@@ -134,7 +147,12 @@ function Icon({ name, color }: { name: IconName; color: string }) {
   const p = { stroke: color, strokeWidth: 2, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24">
-      {name === 'plans' ? (
+      {name === 'home' ? (
+        <>
+          <Path d="M3.5 11L12 4l8.5 7" {...p} />
+          <Path d="M6 10v9.5h12V10" {...p} />
+        </>
+      ) : name === 'plans' ? (
         <>
           <Rect x="4" y="3" width="16" height="18" rx="3" {...p} />
           <Path d="M8 8h8M8 12h8M8 16h5" {...p} />

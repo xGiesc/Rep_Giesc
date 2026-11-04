@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   formTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
   muted: { color: colors.muted, fontSize: 13 },
-  edit: { color: colors.accent, fontSize: 12, marginTop: 2 },
+  edit: { color: colors.accentInk, fontSize: 12, marginTop: 2 },
   exRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   exName: { color: colors.text, fontSize: 16, fontWeight: '600' },
   remove: { color: colors.danger, fontWeight: '600' },
@@ -289,5 +289,5 @@ const styles = StyleSheet.create({
   },
   pickPlaceholder: { color: colors.muted, fontSize: 16, flex: 1 },
   pickValue: { color: colors.text, fontSize: 16, fontWeight: '600', flex: 1 },
-  pickArrow: { color: colors.accent, fontSize: 22, fontWeight: '700' },
+  pickArrow: { color: colors.accentInk, fontSize: 22, fontWeight: '700' },
 });

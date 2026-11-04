@@ -84,3 +84,21 @@ test('scadenze: date e messaggi', () => {
   assert.equal(expiryInfo(toIsoDate(new Date(2020, 0, 1)))?.tone, 'expired');
   assert.equal(expiryInfo(toIsoDate(new Date()))?.text, 'Scade oggi');
 });
+
+test('rotazione schede: prevista, giro, scadute', async () => {
+  const { cycleState } = await import('../src/rotation');
+  const ex = [{ id: 'e', name: 'x', sets: 1, reps: 1 }];
+  const A = { id: 'A', name: 'A', exercises: ex };
+  const B = { id: 'B', name: 'B', exercises: ex };
+  const C = { id: 'C', name: 'C', exercises: ex, expiresAt: '2000-01-01' };
+  const s = (planId: string, date: string) => ({ id: date, planName: planId, planId, date, exercises: [] });
+  assert.equal(cycleState([A, B, C], []).next?.id, 'A');
+  const c1 = cycleState([A, B, C], [s('A', '2026-01-01')]);
+  assert.equal(c1.next?.id, 'B');
+  assert.deepEqual(c1.done.map((p) => p.id), ['A', 'C'], 'fatta + scaduta');
+  const c2 = cycleState([A, B, C], [s('A', '2026-01-01'), s('B', '2026-01-03')]);
+  assert.equal(c2.next?.id, 'A', 'giro completo: si ricomincia');
+  assert.deepEqual(c2.done.map((p) => p.id), ['A', 'B', 'C'], 'le eseguite restano consultabili');
+  assert.equal(cycleState([C], []).next, null);
+  assert.equal(cycleState([], []).next, null);
+});

@@ -1,3 +1,4 @@
+import { brand } from '../brand';
 /**
  * Motore delle animazioni dell'omino (vista laterale, tutto in SVG).
  *
@@ -35,7 +36,7 @@ export const COLORS = {
   torso: '#b8bbc4',
   head: '#dadde3',
   outline: '#4d515c',
-  red: '#e30613',
+  red: brand.accent,
   metal: '#5a6070',
   plate: '#30343f',
   bench: '#9aa1ae',

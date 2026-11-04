@@ -16,14 +16,25 @@ const db = () => {
   return supabase;
 };
 
+const PROFILE_COLS = 'id,email,name,role,pt_id';
+
+/** Il codice invito non è leggibile dalla tabella: lo dà solo la funzione my_invite_code() al PT stesso. */
 export async function fetchProfile(id: string): Promise<Profile | null> {
-  const { data } = await db().from('profiles').select('*').eq('id', id).maybeSingle();
-  return (data as Profile) ?? null;
+  const { data } = await db().from('profiles').select(PROFILE_COLS).eq('id', id).maybeSingle();
+  if (!data) return null;
+  const p = { ...(data as Omit<Profile, 'invite_code'>), invite_code: '' } as Profile;
+  if (p.role === 'pt') {
+    const { data: code } = await db().rpc('my_invite_code');
+    if (typeof code === 'string') p.invite_code = code;
+  }
+  return p;
 }
 
 export async function fetchClients(): Promise<Profile[]> {
-  const { data } = await db().from('profiles').select('*').order('name');
-  return ((data as Profile[]) ?? []).filter((p) => p.pt_id !== null);
+  const { data } = await db().from('profiles').select(PROFILE_COLS).order('name');
+  return ((data as Array<Omit<Profile, 'invite_code'>>) ?? [])
+    .filter((p) => p.pt_id !== null)
+    .map((p) => ({ ...p, invite_code: '' }));
 }
 
 export type ClientOverview = {

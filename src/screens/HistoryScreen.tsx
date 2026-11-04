@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   list: { padding: spacing.lg, gap: spacing.md },
   top: { flexDirection: 'row', justifyContent: 'space-between' },
   name: { color: colors.text, fontSize: 18, fontWeight: '700' },
-  volume: { color: colors.accent, fontSize: 16, fontWeight: '700' },
+  volume: { color: colors.accentInk, fontSize: 16, fontWeight: '700' },
   exName: { color: colors.text, fontSize: 14, fontWeight: '600' },
   muted: { color: colors.muted, fontSize: 13 },
   empty: { color: colors.muted, textAlign: 'center', marginTop: spacing.xl },
