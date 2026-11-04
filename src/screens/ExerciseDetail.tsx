@@ -17,7 +17,7 @@ import {
 } from '../exerciseDb';
 import { colors, spacing } from '../theme';
 import { ExerciseAnimation } from '../anim/ExerciseAnimation';
-import { animationFor } from '../anim/mapping';
+import { animationFor, animationForName } from '../anim/mapping';
 
 /**
  * Scheda dell'esercizio: immagini che si alternano (posizione di partenza e di
@@ -40,7 +40,10 @@ export function ExerciseDetail({
   onClose: () => void;
 }) {
   const ex = findExercise(dbId, name);
-  const anim = ex ? animationFor(ex) : null;
+  const custom = !ex ? animationForName(name) : null;
+  const anim = ex ? animationFor(ex) : custom;
+  const primary = ex ? ex.primaryMuscles : custom?.primary ?? [];
+  const secondary = ex ? ex.secondaryMuscles : custom?.secondary ?? [];
   const [frame, setFrame] = useState(0);
   const [imgFailed, setImgFailed] = useState(false);
 
@@ -59,13 +62,13 @@ export function ExerciseDetail({
           In scheda: {sets} serie × {reps} ripetizioni · recupero {fmtRest(rest)}
         </Text>
 
-        {ex && anim ? (
+        {anim ? (
           <View style={[styles.media, { paddingBottom: 0 }]}>
             <ExerciseAnimation
               pattern={anim.pattern}
               impl={anim.impl}
-              primary={ex.primaryMuscles}
-              secondary={ex.secondaryMuscles}
+              primary={primary}
+              secondary={secondary}
             />
             <Text style={[styles.mediaHint, { marginVertical: spacing.sm }]}>
               Animazione schematica · in rosso i muscoli che lavorano
