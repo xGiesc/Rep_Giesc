@@ -73,6 +73,16 @@ test.describe('login e ruoli', () => {
     await snap(page, info, 'login');
     await page.getByText('Registrati', { exact: true }).click();
     await expect(page.getByText(/Codice del tuo personal trainer/)).toBeVisible();
+    // senza aver letto l'informativa non si può creare l'account
+    await page.getByPlaceholder('Come ti chiami').fill('Mario');
+    await page.locator('input[type=email], input[inputmode=email]').first().fill('m@x.it');
+    await page.locator('input[type=password]').fill('password123');
+    await expect(page.getByText('Crea account').locator('xpath=ancestor-or-self::*[@aria-disabled="true"]')).toHaveCount(1);
+    await page.getByTestId('agree').click();
+    await expect(page.getByText('Crea account').locator('xpath=ancestor-or-self::*[@aria-disabled="true"]')).toHaveCount(0);
+    await page.getByText('informativa privacy').click();
+    await expect(page.getByText('Chi tratta i tuoi dati')).toBeVisible();
+    await page.getByText('‹ Indietro').click();
     await expectNoOverflow(page, 'registrazione');
     expect(errors).toEqual([]);
   });

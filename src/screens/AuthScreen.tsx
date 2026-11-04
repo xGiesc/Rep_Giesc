@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Field } from '../components';
 import { Banner } from '../Banner';
+import { PrivacyScreen } from './PrivacyScreen';
 import { supabase } from '../supabase';
 import { colors, spacing } from '../theme';
 
@@ -13,6 +14,8 @@ export function AuthScreen() {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [agree, setAgree] = useState(false);
+  const [privacy, setPrivacy] = useState(false);
 
   const submit = async () => {
     if (!supabase) return;
@@ -48,7 +51,9 @@ export function AuthScreen() {
     setBusy(false);
   };
 
-  const ok = email.includes('@') && password.length >= 6 && (mode === 'login' || name.trim());
+  const ok = email.includes('@') && password.length >= (mode === 'login' ? 1 : 8) && (mode === 'login' || (name.trim() && agree));
+
+  if (privacy) return <PrivacyScreen onBack={() => setPrivacy(false)} />;
 
   return (
     <View style={{ flex: 1 }}>
@@ -79,7 +84,7 @@ export function AuthScreen() {
         autoCapitalize="none"
       />
       <Field
-        label="Password (minimo 6 caratteri)"
+        label="Password (minimo 8 caratteri)"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -91,9 +96,24 @@ export function AuthScreen() {
           value={code}
           onChangeText={(t) => setCode(t.toUpperCase())}
           autoCapitalize="characters"
-          placeholder="Es. A1B2C3"
+          placeholder="Es. A1B2C3D4"
         />
       ) : null}
+      {mode === 'register' ? (
+        <Pressable testID="agree" onPress={() => setAgree(!agree)} style={styles.agree}>
+          <View style={[styles.box, agree && { backgroundColor: colors.accent, borderColor: colors.accent }]}>
+            {agree ? <Text style={{ color: colors.accentText, fontWeight: '900', fontSize: 12 }}>✓</Text> : null}
+          </View>
+          <Text style={styles.agreeText}>
+            Ho letto l’
+            <Text style={{ color: colors.accentInk, fontWeight: '800' }} onPress={() => setPrivacy(true)}>
+              informativa privacy
+            </Text>
+          </Text>
+        </Pressable>
+      ) : (
+        <Text style={styles.link} onPress={() => setPrivacy(true)}>Informativa privacy</Text>
+      )}
       {msg ? <Text style={styles.msg}>{msg}</Text> : null}
       <Button
         label={busy ? '…' : mode === 'login' ? 'Accedi' : 'Crea account'}
@@ -108,5 +128,9 @@ export function AuthScreen() {
 const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.md },
   switch: { flexDirection: 'row', gap: spacing.sm },
+  agree: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  box: { width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  agreeText: { color: colors.text, fontSize: 14, flex: 1 },
+  link: { color: colors.muted, fontSize: 13, textAlign: 'center', textDecorationLine: 'underline' },
   msg: { color: colors.danger, fontSize: 14, textAlign: 'center' },
 });

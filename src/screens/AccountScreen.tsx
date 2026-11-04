@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Field, Header } from '../components';
 import { Profile, fetchProfile, joinPt, leavePt, updateName } from '../cloud';
+import { PrivacyScreen } from './PrivacyScreen';
 import { supabase } from '../supabase';
 import { colors, spacing } from '../theme';
 
@@ -19,11 +20,14 @@ export function AccountScreen({
   const [code, setCode] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [ptName, setPtName] = useState<string | null>(null);
+  const [privacy, setPrivacy] = useState(false);
 
   useEffect(() => {
     if (!profile.pt_id || profile.role === 'pt') return setPtName(null);
     fetchProfile(profile.pt_id).then((p) => setPtName(p?.name || p?.email || 'il tuo PT'));
   }, [profile.pt_id, profile.role]);
+
+  if (privacy) return <PrivacyScreen onBack={() => setPrivacy(false)} />;
 
   return (
     <View style={{ flex: 1 }}>
@@ -100,6 +104,7 @@ export function AccountScreen({
           </Card>
         ) : null}
 
+        <Button label="Informativa privacy" variant="ghost" onPress={() => setPrivacy(true)} />
         <Button label="Esci" variant="danger" onPress={() => supabase?.auth.signOut()} />
       </ScrollView>
     </View>
