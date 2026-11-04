@@ -120,6 +120,7 @@ function CloudApp({ userId }: { userId: string }) {
       onSavePlan={mine.save}
       onDeletePlan={mine.remove}
       onFinishSession={sessions.add}
+      canEdit={isPt}
       extraTabs={[
         ...(isPt
           ? [{ key: 'clients', label: 'Ragazzi', render: () => <ClientsScreen code={profile.invite_code} onOpen={setClient} /> }]

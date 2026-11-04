@@ -1,14 +1,14 @@
 export const colors = {
-  bg: '#0f1115',
-  card: '#1a1d24',
-  cardAlt: '#232732',
-  border: '#2c313d',
-  text: '#f2f4f8',
-  muted: '#8b93a5',
-  accent: '#e5232b',
-  accentText: '#ffffff',
-  success: '#34c759',
-  danger: '#ff453a',
+  bg: '#000000',
+  card: '#111111',
+  cardAlt: '#1c1c1c',
+  border: '#333333',
+  text: '#ffffff',
+  muted: '#9a9a9a',
+  accent: '#ffffff',
+  accentText: '#000000',
+  success: '#ffffff',
+  danger: '#bdbdbd',
 };
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 };

@@ -14,6 +14,7 @@ import { colors, spacing } from '../theme';
 import { Exercise, Plan, Session, newId, restOf } from '../types';
 import { useRestTimer } from '../useRestTimer';
 import { ExerciseDetail } from './ExerciseDetail';
+import { ExercisePicker } from './ExercisePicker';
 
 type SetRow = { kg: string; reps: string; done: boolean };
 
@@ -47,6 +48,9 @@ export function WorkoutScreen({
     return map;
   }, [history]);
 
+  // gli esercizi aggiunti durante l'allenamento valgono solo per questa seduta
+  const [exs, setExs] = useState<Exercise[]>(plan.exercises);
+  const [picking, setPicking] = useState(false);
   const [rows, setRows] = useState<SetRow[][]>(() =>
     plan.exercises.map((e) =>
       Array.from({ length: e.sets }, () => ({
@@ -80,7 +84,7 @@ export function WorkoutScreen({
     const allDone = rows.every((exRows, i) =>
       exRows.every((r, j) => (i === ei && j === si ? true : r.done)),
     );
-    const ex = plan.exercises[ei];
+    const ex = exs[ei];
     // niente recupero dopo l'ultima serie di tutto l'allenamento
     if (!allDone) timer.start(restOf(ex), `${ex.name} · serie ${si + 1}`);
   };
@@ -98,7 +102,7 @@ export function WorkoutScreen({
   const totalCount = rows.flat().length;
 
   const finish = () => {
-    const exercises = plan.exercises
+    const exercises = exs
       .map((e, i) => ({
         name: e.name,
         sets: rows[i]
@@ -126,6 +130,27 @@ export function WorkoutScreen({
       />
     </View>
   ) : null;
+
+  if (picking) {
+    return (
+      <ExercisePicker
+        onClose={() => setPicking(false)}
+        onPick={(name, dbId) => {
+          const e: Exercise = { id: newId(), name, dbId, sets: 3, reps: 10, rest: 90 };
+          setExs((prev) => [...prev, e]);
+          setRows((prev) => [
+            ...prev,
+            Array.from({ length: 3 }, () => ({
+              kg: lastKg[name.toLowerCase()]?.toString() ?? '',
+              reps: '10',
+              done: false,
+            })),
+          ]);
+          setPicking(false);
+        }}
+      />
+    );
+  }
 
   if (detail) {
     return (
@@ -160,7 +185,7 @@ export function WorkoutScreen({
           timer.active && { paddingBottom: 150 },
         ]}
       >
-        {plan.exercises.map((e, ei) => (
+        {exs.map((e, ei) => (
           <Card key={e.id} style={{ gap: spacing.sm }}>
             <Pressable onPress={() => setDetail(e)} style={styles.exHeader}>
               <View style={{ flex: 1 }}>
@@ -216,6 +241,11 @@ export function WorkoutScreen({
             />
           </Card>
         ))}
+        <Button
+          label="+ Aggiungi esercizio"
+          variant="ghost"
+          onPress={() => setPicking(true)}
+        />
         <Button
           label="Termina allenamento"
           onPress={finish}

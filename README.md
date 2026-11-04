@@ -12,7 +12,7 @@ App per gestire gli allenamenti in palestra (stile Coach Plus): crei le tue sche
 
 ## Account, PT e clienti (Supabase)
 
-Con il cloud attivo ogni persona accede con email e password e ha le sue schede e il suo storico. Il **personal trainer** ha in più la scheda **Ragazzi**: vede i suoi clienti, crea/modifica/elimina le loro schede (compaiono subito sul loro telefono con la dicitura "Assegnata dal tuo personal trainer") e consulta il loro storico. I clienti si collegano al PT con il **codice PT** (6 caratteri, in Account del PT), in registrazione o dopo.
+Con il cloud attivo ogni persona accede con email e password e ha le sue schede e il suo storico. L’atleta **non può modificare le schede** (le assegna il PT; può solo aprirle, guardarle e, durante l’allenamento, aggiungere esercizi solo per quella seduta). Il **personal trainer** ha in più la scheda **Ragazzi**: vede i suoi clienti, crea/modifica/elimina le loro schede (compaiono subito sul loro telefono con la dicitura "Assegnata dal tuo personal trainer") e consulta il loro storico. I clienti si collegano al PT con il **codice PT** (6 caratteri, in Account del PT), in registrazione o dopo.
 
 Attivazione (una volta sola):
 

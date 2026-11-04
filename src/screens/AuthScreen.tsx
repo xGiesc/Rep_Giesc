@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Field } from '../components';
+import { Logo } from '../Logo';
 import { supabase } from '../supabase';
 import { colors, spacing } from '../theme';
 
@@ -46,7 +47,7 @@ export function AuthScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-      <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+      <Logo width="100%" height={150} />
       <View style={styles.switch}>
         <Button
           label="Accedi"
@@ -99,7 +100,6 @@ export function AuthScreen() {
 
 const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.md },
-  logo: { width: '100%', height: 150, marginVertical: spacing.lg },
   switch: { flexDirection: 'row', gap: spacing.sm },
   msg: { color: colors.danger, fontSize: 14, textAlign: 'center' },
 });

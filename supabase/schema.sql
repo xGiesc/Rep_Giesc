@@ -89,10 +89,21 @@ create policy profiles_update on public.profiles for update to authenticated
 revoke update on public.profiles from authenticated;
 grant update (name) on public.profiles to authenticated;
 
+create or replace function public.my_role() returns text
+language sql security definer set search_path = public stable as $$
+  select role from profiles where id = auth.uid();
+$$;
+
+-- le schede le leggono l'atleta e il suo PT; le scrivono solo il PT (per i suoi
+-- ragazzi) e chi è PT (per sé). L'atleta non può modificarle.
 drop policy if exists plans_all on public.plans;
-create policy plans_all on public.plans for all to authenticated
-  using (owner_id = auth.uid() or public.is_pt_of(owner_id))
-  with check (owner_id = auth.uid() or public.is_pt_of(owner_id));
+drop policy if exists plans_select on public.plans;
+drop policy if exists plans_write on public.plans;
+create policy plans_select on public.plans for select to authenticated
+  using (owner_id = auth.uid() or public.is_pt_of(owner_id));
+create policy plans_write on public.plans for all to authenticated
+  using (public.is_pt_of(owner_id) or (owner_id = auth.uid() and public.my_role() = 'pt'))
+  with check (public.is_pt_of(owner_id) or (owner_id = auth.uid() and public.my_role() = 'pt'));
 
 drop policy if exists sessions_select on public.sessions;
 create policy sessions_select on public.sessions for select to authenticated

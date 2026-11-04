@@ -35,7 +35,7 @@ export const COLORS = {
   torso: '#bcc2cc',
   head: '#dadde3',
   outline: '#8a91a0',
-  red: '#e5383b',
+  red: '#111111',
   metal: '#5a6070',
   plate: '#30343f',
   bench: '#9aa1ae',

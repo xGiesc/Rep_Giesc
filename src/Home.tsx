@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { PlanEditor } from './screens/PlanEditor';
+import { PlanView } from './screens/PlanView';
 import { PlansScreen } from './screens/PlansScreen';
 import { WorkoutScreen } from './screens/WorkoutScreen';
 import { colors, spacing } from './theme';
@@ -10,7 +11,8 @@ import { Plan, Session } from './types';
 type Route =
   | { name: 'tabs' }
   | { name: 'editor'; plan: Plan | null }
-  | { name: 'workout'; plan: Plan };
+  | { name: 'workout'; plan: Plan }
+  | { name: 'view'; plan: Plan };
 
 export type ExtraTab = { key: string; label: string; render: () => React.ReactNode };
 
@@ -25,6 +27,7 @@ export function Home({
   history,
   onFinishSession,
   canTrain = true,
+  canEdit = true,
   plansTitle,
   historyTitle,
   onBack,
@@ -36,6 +39,7 @@ export function Home({
   history: Session[];
   onFinishSession?: (s: Session) => void;
   canTrain?: boolean;
+  canEdit?: boolean;
   plansTitle?: string;
   historyTitle?: string;
   onBack?: () => void;
@@ -58,6 +62,16 @@ export function Home({
           onDeletePlan(id);
           goHome();
         }}
+      />
+    );
+  }
+  if (route.name === 'view') {
+    return (
+      <PlanView
+        plan={plans.find((p) => p.id === route.plan.id) ?? route.plan}
+        canStart={canTrain}
+        onStart={() => setRoute({ name: 'workout', plan: route.plan })}
+        onBack={goHome}
       />
     );
   }
@@ -87,6 +101,8 @@ export function Home({
             plans={plans}
             title={plansTitle}
             canStart={canTrain}
+            canEdit={canEdit}
+            onOpen={(plan) => setRoute({ name: 'view', plan })}
             onBack={onBack}
             onNew={() => setRoute({ name: 'editor', plan: null })}
             onEdit={(plan) => setRoute({ name: 'editor', plan })}

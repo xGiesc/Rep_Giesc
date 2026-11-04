@@ -71,7 +71,7 @@ export function ExerciseDetail({
               secondary={secondary}
             />
             <Text style={[styles.mediaHint, { marginVertical: spacing.sm }]}>
-              Animazione schematica · in rosso i muscoli che lavorano
+              Animazione schematica · in nero i muscoli che lavorano
             </Text>
           </View>
         ) : ex && frames > 0 && !imgFailed ? (
@@ -109,7 +109,7 @@ export function ExerciseDetail({
                 ))}
               </View>
               <Text style={styles.muted}>
-                In arancione i muscoli principali, in grigio i secondari.
+                In bianco i muscoli principali, in grigio i secondari.
               </Text>
               <Text style={styles.muted}>
                 Attrezzo: {equipmentLabel(ex.equipment)}

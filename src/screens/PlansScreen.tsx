@@ -1,6 +1,7 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Header } from '../components';
+import { Logo } from '../Logo';
 import { colors, spacing } from '../theme';
 import { Plan } from '../types';
 
@@ -11,6 +12,8 @@ export function PlansScreen({
   onStart,
   title = 'Le mie schede',
   canStart = true,
+  canEdit = true,
+  onOpen,
   onBack,
 }: {
   plans: Plan[];
@@ -19,6 +22,8 @@ export function PlansScreen({
   onStart: (plan: Plan) => void;
   title?: string;
   canStart?: boolean;
+  canEdit?: boolean;
+  onOpen?: (plan: Plan) => void;
   onBack?: () => void;
 }) {
   return (
@@ -28,18 +33,14 @@ export function PlansScreen({
         onBack={onBack}
         right={
           onBack ? undefined : (
-            <Image
-              source={require('../../assets/logo.png')}
-              style={{ width: 70, height: 33 }}
-              resizeMode="contain"
-            />
+            <Logo width={74} height={35} />
           )
         }
       />
       <ScrollView contentContainerStyle={styles.list}>
         {plans.length === 0 ? (
           <Text style={styles.empty}>
-            Nessuna scheda. Creane una per iniziare ad allenarti.
+            {canEdit ? 'Nessuna scheda. Creane una per iniziare ad allenarti.' : 'Nessuna scheda per ora: il tuo personal trainer te la assegnerà qui.'}
           </Text>
         ) : null}
         {plans.map((plan) => (
@@ -63,16 +64,26 @@ export function PlansScreen({
                   style={{ flex: 1 }}
                 />
               ) : null}
-              <Button
-                label="Modifica"
-                variant="ghost"
-                onPress={() => onEdit(plan)}
-                style={{ flex: 1 }}
-              />
+              {onOpen ? (
+                <Button
+                  label="Apri"
+                  variant="ghost"
+                  onPress={() => onOpen(plan)}
+                  style={{ flex: 1 }}
+                />
+              ) : null}
+              {canEdit ? (
+                <Button
+                  label="Modifica"
+                  variant="ghost"
+                  onPress={() => onEdit(plan)}
+                  style={{ flex: 1 }}
+                />
+              ) : null}
             </View>
           </Card>
         ))}
-        <Button label="+ Nuova scheda" variant="ghost" onPress={onNew} />
+        {canEdit ? <Button label="+ Nuova scheda" variant="ghost" onPress={onNew} /> : null}
       </ScrollView>
     </View>
   );
