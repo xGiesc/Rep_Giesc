@@ -3,6 +3,11 @@ import { LOCAL, expectBanner, expectNoOverflow, snap, trackErrors } from './help
 
 // Modalità senza cloud: tutto sul dispositivo, senza login.
 test.describe('app locale', () => {
+  // di default il servizio esterno delle GIF è irraggiungibile: l'app usa le sue animazioni
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/oss.exercisedb.dev/**', (r) => r.abort());
+  });
+
   test('schede, apertura senza iniziare, animazioni, allenamento, timer, storico', async ({ page }, info) => {
     const errors = trackErrors(page);
     await page.goto(LOCAL);
@@ -138,5 +143,30 @@ test.describe('app locale', () => {
     await page.getByText('Apri', { exact: true }).click();
     await page.getByText('Video e info ›').click();
     await expect(page.getByText('Animazione schematica')).toBeVisible();
+  });
+
+  test('GIF di ExerciseDB: compare se il servizio risponde, e si può tornare allo schema', async ({ page }) => {
+    const GIF = Buffer.from('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'base64');
+    let asked = '';
+    await page.route('**/oss.exercisedb.dev/**', (r) => {
+      asked = r.request().url();
+      r.fulfill({
+        status: 200,
+        headers: { 'access-control-allow-origin': '*', 'content-type': 'application/json' },
+        body: JSON.stringify({ success: true, data: { exercises: [
+          { name: 'barbell bench press', gifUrl: 'https://static.exercisedb.dev/media/x.gif', equipments: ['barbell'] },
+          { name: 'dumbbell fly', gifUrl: 'https://static.exercisedb.dev/media/y.gif', equipments: ['dumbbell'] },
+        ] } }),
+      });
+    });
+    await page.route('**/static.exercisedb.dev/**', (r) => r.fulfill({ status: 200, headers: { 'content-type': 'image/gif', 'access-control-allow-origin': '*' }, body: GIF }));
+    await page.goto(LOCAL);
+    await page.getByText('Apri', { exact: true }).first().click();
+    await page.getByText('Video e info ›').first().click();
+    await expect(page.getByTestId('exercise-gif')).toBeVisible();
+    expect(decodeURIComponent(asked)).toMatch(/barbell.*bench press/);
+    await page.getByText(/Mostra animazione schematica/).click();
+    await expect(page.getByText('Animazione schematica ·')).toBeVisible();
+    await expect(page.getByTestId('exercise-gif')).toHaveCount(0);
   });
 });

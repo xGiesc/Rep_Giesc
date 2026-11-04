@@ -127,3 +127,7 @@ Arancio/antracite di default. Alternative: `EXPO_PUBLIC_BRAND=cyan` o `red` in f
 ## Tema chiaro/scuro
 
 Da Account → Aspetto ognuno sceglie Chiaro o Scuro (antracite); la scelta resta sul dispositivo e la pagina si ricarica al cambio. Predefinito: chiaro.
+
+## GIF di ExerciseDB (sperimentale)
+
+Nella scheda di un esercizio l'app prova a caricare la GIF da ExerciseDB (ricerca per nome inglese ricavato da movimento e attrezzo; risultato ricordato sul dispositivo). Se il servizio non risponde o non trova nulla, mostra la sua animazione schematica; con "Mostra animazione schematica" si può tornare allo schema. Disattivare: `EXPO_PUBLIC_EXERCISEDB=off` in build, oppure revert del commit. Verificare i termini d'uso di ExerciseDB.

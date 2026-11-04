@@ -129,3 +129,24 @@ test('notifiche atleta e coach', async () => {
   assert.deepEqual(c.map((n) => n.kind).sort(), ['no_plan', 'plan_soon', 'workout_done']);
   assert.equal(c.find((n) => n.kind === 'no_plan')!.athleteId, 'u2');
 });
+
+test('ricerca GIF ExerciseDB: query, estrazione e scelta del risultato', async () => {
+  const { gifQuery, extractList, pickBest } = await import('../src/exerciseGif');
+  assert.equal(gifQuery({ name: 'Panca inclinata con bilanciere', movement: 'incline_press', equipment: 'barbell' }), 'barbell incline bench press');
+  assert.equal(gifQuery({ name: 'Chest press alla macchina', movement: 'chest_press_machine', equipment: 'machine' }), 'lever chest press');
+  assert.equal(gifQuery({ name: 'Flessioni', movement: 'push_up', equipment: 'body only' }), 'push up');
+  const shapes = [
+    { data: { exercises: [{ name: 'a', gifUrl: 'u' }] } },
+    { data: [{ name: 'a', gifUrl: 'u' }] },
+    [{ name: 'a', gifUrl: 'u' }],
+  ];
+  for (const j of shapes) assert.equal(extractList(j).length, 1);
+  assert.equal(extractList({ foo: 1 }).length, 0);
+  const list = [
+    { name: 'dumbbell fly', gifUrl: 'fly', equipments: ['dumbbell'] },
+    { name: 'barbell bench press', gifUrl: 'bp', equipments: ['barbell'] },
+    { name: 'barbell bench press wide', gifUrl: 'bpw', equipments: ['barbell'] },
+  ];
+  assert.equal(pickBest(list, 'barbell bench press', 'barbell')?.gifUrl, 'bp');
+  assert.equal(pickBest(list, 'curl', 'barbell'), null);
+});

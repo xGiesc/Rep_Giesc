@@ -1,8 +1,9 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { brand } from '../brand';
 import { Card, Chip, Header } from '../components';
 import { fmtRest } from '../format';
+import { useExerciseGif } from '../exerciseGif';
 import { LEVEL_IT, equipmentLabel, findExercise, muscleLabel } from '../exerciseDb';
 import { colors, radius, shadow, spacing } from '../theme';
 import { ExerciseAnimation } from '../anim/ExerciseAnimation';
@@ -29,6 +30,11 @@ export function ExerciseDetail({
   const anim = ex ? animationFor(ex) : custom;
   const primary = ex ? ex.primaryMuscles : custom?.primary ?? [];
   const secondary = ex ? ex.secondaryMuscles : custom?.secondary ?? [];
+  // GIF di ExerciseDB, se disponibile; altrimenti (o a richiesta) l'animazione schematica
+  const gif = useExerciseGif(ex ?? null, anim?.pattern);
+  const [gifFailed, setGifFailed] = React.useState(false);
+  const [schema, setSchema] = React.useState(false);
+  const showGif = !!gif.url && !gifFailed && !schema;
 
   return (
     <View style={{ flex: 1 }}>
@@ -40,7 +46,23 @@ export function ExerciseDetail({
           </Text>
         </View>
 
-        {anim ? (
+        {showGif ? (
+          <View style={styles.media}>
+            <Image
+              testID="exercise-gif"
+              source={{ uri: gif.url as string }}
+              style={styles.gif}
+              resizeMode="contain"
+              onError={() => setGifFailed(true)}
+              accessibilityLabel={`Animazione di ${ex?.name ?? name}`}
+            />
+            <Pressable onPress={() => setSchema(true)}>
+              <Text style={[styles.mediaHint, { color: colors.accentInk, fontWeight: '700' }]}>
+                Fonte: ExerciseDB · Mostra animazione schematica
+              </Text>
+            </Pressable>
+          </View>
+        ) : anim ? (
           <View style={styles.media}>
             <ExerciseAnimation
               pattern={anim.pattern}
@@ -51,6 +73,11 @@ export function ExerciseDetail({
             <Text style={styles.mediaHint}>
               Animazione schematica · in {brand.word} i muscoli che lavorano
             </Text>
+            {schema && gif.url && !gifFailed ? (
+              <Pressable onPress={() => setSchema(false)}>
+                <Text style={[styles.mediaHint, { color: colors.accentInk, fontWeight: '700', marginTop: 0 }]}>Mostra la GIF</Text>
+              </Pressable>
+            ) : null}
           </View>
         ) : (
           <View style={[styles.media, styles.noMedia]}>
@@ -115,6 +142,7 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   noMedia: { padding: spacing.xl },
+  gif: { width: '100%', aspectRatio: 1, backgroundColor: '#ffffff' },
   mediaHint: {
     color: colors.muted,
     fontSize: 12,
