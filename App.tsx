@@ -26,9 +26,30 @@ const SAMPLE_PLANS: Plan[] = [
     id: 'sample-push',
     name: 'Push (esempio)',
     exercises: [
-      { id: 'e1', name: 'Panca piana', sets: 4, reps: 8 },
-      { id: 'e2', name: 'Military press', sets: 3, reps: 10 },
-      { id: 'e3', name: 'Croci ai cavi', sets: 3, reps: 12 },
+      {
+        id: 'e1',
+        name: 'Barbell Bench Press - Medium Grip',
+        dbId: 'Barbell_Bench_Press_-_Medium_Grip',
+        sets: 4,
+        reps: 8,
+        rest: 120,
+      },
+      {
+        id: 'e2',
+        name: 'Standing Military Press',
+        dbId: 'Standing_Military_Press',
+        sets: 3,
+        reps: 10,
+        rest: 90,
+      },
+      {
+        id: 'e3',
+        name: 'Cable Crossover',
+        dbId: 'Cable_Crossover',
+        sets: 3,
+        reps: 12,
+        rest: 60,
+      },
     ],
   },
 ];

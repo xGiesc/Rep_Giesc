@@ -1,9 +1,19 @@
-import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Button, Card, Header } from '../components';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { Button, Card, Header, RestTimerBar } from '../components';
+import { keepScreenAwake, unlockAudio } from '../feedback';
+import { fmtRest } from '../format';
 import { colors, spacing } from '../theme';
-import { Plan, Session, newId } from '../types';
-import { TextInput } from 'react-native';
+import { Exercise, Plan, Session, newId, restOf } from '../types';
+import { useRestTimer } from '../useRestTimer';
+import { ExerciseDetail } from './ExerciseDetail';
 
 type SetRow = { kg: string; reps: string; done: boolean };
 
@@ -46,6 +56,11 @@ export function WorkoutScreen({
       })),
     ),
   );
+  const [detail, setDetail] = useState<Exercise | null>(null);
+  const timer = useRestTimer();
+
+  // Durante l'allenamento lo schermo resta acceso (così il timer non si perde)
+  useEffect(() => keepScreenAwake(), []);
 
   const patch = (ei: number, si: number, p: Partial<SetRow>) =>
     setRows((prev) =>
@@ -55,6 +70,20 @@ export function WorkoutScreen({
           : exRows.map((r, j) => (j === si ? { ...r, ...p } : r)),
       ),
     );
+
+  const toggleDone = (ei: number, si: number) => {
+    const nowDone = !rows[ei][si].done;
+    patch(ei, si, { done: nowDone });
+    if (!nowDone) return;
+
+    unlockAudio(); // serve il tocco dell'utente per poter suonare a fine recupero
+    const allDone = rows.every((exRows, i) =>
+      exRows.every((r, j) => (i === ei && j === si ? true : r.done)),
+    );
+    const ex = plan.exercises[ei];
+    // niente recupero dopo l'ultima serie di tutto l'allenamento
+    if (!allDone) timer.start(restOf(ex), `${ex.name} · serie ${si + 1}`);
+  };
 
   const addSet = (ei: number) =>
     setRows((prev) =>
@@ -85,6 +114,35 @@ export function WorkoutScreen({
     });
   };
 
+  const timerBar = timer.active ? (
+    <View style={styles.timerWrap} pointerEvents="box-none">
+      <RestTimerBar
+        label={timer.label}
+        remaining={timer.remaining}
+        total={timer.total}
+        finished={timer.finished}
+        onAdjust={timer.adjust}
+        onSkip={timer.skip}
+      />
+    </View>
+  ) : null;
+
+  if (detail) {
+    return (
+      <View style={{ flex: 1 }}>
+        <ExerciseDetail
+          name={detail.name}
+          dbId={detail.dbId}
+          sets={detail.sets}
+          reps={detail.reps}
+          rest={restOf(detail)}
+          onClose={() => setDetail(null)}
+        />
+        {timerBar}
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <Header
@@ -96,10 +154,23 @@ export function WorkoutScreen({
           </Text>
         }
       />
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.body,
+          timer.active && { paddingBottom: 150 },
+        ]}
+      >
         {plan.exercises.map((e, ei) => (
           <Card key={e.id} style={{ gap: spacing.sm }}>
-            <Text style={styles.exName}>{e.name}</Text>
+            <Pressable onPress={() => setDetail(e)} style={styles.exHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.exName}>{e.name}</Text>
+                <Text style={styles.exMeta}>
+                  Recupero {fmtRest(restOf(e))}
+                </Text>
+              </View>
+              <Text style={styles.exInfo}>Video e info ›</Text>
+            </Pressable>
             <View style={styles.setRow}>
               <Text style={[styles.colLabel, { width: 28 }]}>Set</Text>
               <Text style={[styles.colLabel, { flex: 1 }]}>Kg</Text>
@@ -128,7 +199,7 @@ export function WorkoutScreen({
                   placeholderTextColor={colors.muted}
                 />
                 <Pressable
-                  onPress={() => patch(ei, si, { done: !r.done })}
+                  onPress={() => toggleDone(ei, si)}
                   style={[
                     styles.check,
                     r.done && { backgroundColor: colors.success },
@@ -152,6 +223,7 @@ export function WorkoutScreen({
         />
         <Button label="Annulla" variant="ghost" onPress={onCancel} />
       </ScrollView>
+      {timerBar}
     </View>
   );
 }
@@ -159,7 +231,10 @@ export function WorkoutScreen({
 const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.md },
   progress: { color: colors.accent, fontSize: 18, fontWeight: '700' },
+  exHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   exName: { color: colors.text, fontSize: 18, fontWeight: '700' },
+  exMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  exInfo: { color: colors.accent, fontSize: 13, fontWeight: '700' },
   setRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   colLabel: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   setNum: { color: colors.muted, fontSize: 16, fontWeight: '600' },
@@ -173,6 +248,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     textAlign: 'center',
+    minWidth: 0, // su web l'<input> ha una larghezza minima: senza questo la riga sborda
   },
   check: {
     width: 44,
@@ -184,4 +260,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkText: { color: colors.accentText, fontWeight: '800', fontSize: 16 },
+  timerWrap: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
+  },
 });
