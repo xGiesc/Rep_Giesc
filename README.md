@@ -12,7 +12,7 @@ App per gestire gli allenamenti in palestra (stile Coach Plus): crei le tue sche
 
 ## Account, PT e clienti (Supabase)
 
-Con il cloud attivo ogni persona accede con email e password e ha le sue schede e il suo storico. L’atleta **non può modificare le schede** (le assegna il PT; può solo aprirle, guardarle e, durante l’allenamento, aggiungere esercizi solo per quella seduta). Il **personal trainer** ha in più la scheda **Ragazzi**: vede i suoi clienti, crea/modifica/elimina le loro schede (compaiono subito sul loro telefono con la dicitura "Assegnata dal tuo personal trainer") e consulta il loro storico. I clienti si collegano al PT con il **codice PT** (6 caratteri, in Account del PT), in registrazione o dopo.
+Con il cloud attivo ogni persona accede con email e password e ha le sue schede e il suo storico. L’atleta **non può modificare le schede** (le assegna il PT; può solo aprirle, guardarle e, durante l’allenamento, aggiungere esercizi solo per quella seduta). Il **personal trainer** ha come schermata principale l’elenco dei **ragazzi** (con scadenze e ultimo allenamento, prima quelli da controllare); da Account può passare alla modalità allenamento per usare anche le proprie schede. Per ogni ragazzo crea/modifica/elimina le loro schede (compaiono subito sul loro telefono con la dicitura "Assegnata dal tuo personal trainer") e consulta il loro storico. I clienti si collegano al PT con il **codice PT** (6 caratteri, in Account del PT), in registrazione o dopo.
 
 Attivazione (una volta sola):
 
@@ -23,6 +23,10 @@ Attivazione (una volta sola):
 5. Registrati nell'app, poi in SQL Editor: `update public.profiles set role = 'pt' where email = 'la-tua-email';`
 
 Senza queste chiavi l'app funziona solo sul dispositivo, senza login.
+
+## Scadenza delle schede
+
+Ogni scheda può avere una **finestra temporale** (2, 4, 6, 8 o 12 settimane da oggi, oppure nessuna). Dopo la data la scheda risulta "scaduta" ed è il momento del controllo con il PT; nella home del PT i ragazzi con schede scadute o in scadenza (entro 7 giorni) compaiono per primi. Su ogni scheda si vede anche quanti allenamenti sono stati fatti.
 
 ## Catalogo esercizi
 

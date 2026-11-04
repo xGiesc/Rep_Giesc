@@ -113,6 +113,7 @@ export function WorkoutScreen({
     onFinish({
       id: newId(),
       planName: plan.name,
+      planId: plan.id,
       date: new Date().toISOString(),
       exercises,
     });

@@ -17,7 +17,7 @@ type Route =
 
 export type ExtraTab = { key: string; label: string; icon?: IconName; render: () => React.ReactNode };
 
-type IconName = 'plans' | 'history' | 'clients' | 'account';
+export type IconName = 'plans' | 'history' | 'clients' | 'account';
 
 /**
  * Schermate principali (schede, allenamento, storico) per un insieme di dati:
@@ -104,6 +104,7 @@ export function Home({
             plans={plans}
             title={plansTitle}
             canStart={canTrain}
+            history={history}
             canEdit={canEdit}
             onOpen={(plan) => setRoute({ name: 'view', plan })}
             onBack={onBack}
@@ -115,13 +116,15 @@ export function Home({
           <HistoryScreen history={history} title={historyTitle} onBack={onBack} />
         )}
       </View>
-      <View style={styles.tabBar}>
-        <TabButton label="Schede" icon="plans" active={tab === 'plans'} onPress={() => setTab('plans')} />
-        <TabButton label="Storico" icon="history" active={tab === 'history'} onPress={() => setTab('history')} />
-        {extraTabs.map((t) => (
-          <TabButton key={t.key} label={t.label} icon={t.icon ?? 'account'} active={tab === t.key} onPress={() => setTab(t.key)} />
-        ))}
-      </View>
+      <TabBar
+        tabs={[
+          { key: 'plans', label: 'Schede', icon: 'plans' },
+          { key: 'history', label: 'Storico', icon: 'history' },
+          ...extraTabs.map((t) => ({ key: t.key, label: t.label, icon: t.icon ?? ('account' as IconName) })),
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
     </View>
   );
 }
@@ -156,8 +159,26 @@ function Icon({ name, color }: { name: IconName; color: string }) {
   );
 }
 
+export function TabBar({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: Array<{ key: string; label: string; icon: IconName }>;
+  active: string;
+  onChange: (key: string) => void;
+}) {
+  return (
+    <View style={styles.tabBar}>
+      {tabs.map((t) => (
+        <TabButton key={t.key} label={t.label} icon={t.icon} active={active === t.key} onPress={() => onChange(t.key)} />
+      ))}
+    </View>
+  );
+}
+
 function TabButton({ label, icon, active, onPress }: { label: string; icon: IconName; active: boolean; onPress: () => void }) {
-  const color = active ? colors.text : '#a0a0a8';
+  const color = active ? colors.accent : '#a3a3ad';
   return (
     <Pressable onPress={onPress} style={styles.tab}>
       <Icon name={icon} color={color} />

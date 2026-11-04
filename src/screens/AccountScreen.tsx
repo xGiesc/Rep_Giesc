@@ -9,9 +9,12 @@ import { colors, spacing } from '../theme';
 export function AccountScreen({
   profile,
   onChanged,
+  onSwitch,
 }: {
   profile: Profile;
   onChanged: () => void;
+  /** Solo PT: passa tra gestione ragazzi e allenamento personale. */
+  onSwitch?: { label: string; hint: string; onPress: () => void };
 }) {
   const [name, setName] = useState(profile.name);
   const [code, setCode] = useState('');
@@ -90,6 +93,14 @@ export function AccountScreen({
             )}
           </Card>
         )}
+
+        {onSwitch ? (
+          <Card style={{ gap: spacing.sm }}>
+            <Text style={styles.section}>Modalità</Text>
+            <Text style={styles.muted}>{onSwitch.hint}</Text>
+            <Button label={onSwitch.label} onPress={onSwitch.onPress} />
+          </Card>
+        ) : null}
 
         <Button label="Esci" variant="danger" onPress={() => supabase?.auth.signOut()} />
       </ScrollView>

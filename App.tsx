@@ -6,7 +6,7 @@ import {
   SafeAreaView,
 } from 'react-native-safe-area-context';
 import { Profile, fetchProfile, useCloudPlans, useCloudSessions } from './src/cloud';
-import { Home } from './src/Home';
+import { Home, TabBar } from './src/Home';
 import { AccountScreen } from './src/screens/AccountScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { ClientsScreen } from './src/screens/ClientsScreen';
@@ -101,6 +101,9 @@ function ClientView({ me, client, onBack }: { me: string; client: Profile; onBac
 function CloudApp({ userId }: { userId: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [client, setClient] = useState<Profile | null>(null);
+  // Il PT parte dalla gestione ragazzi; può passare alla modalità allenamento
+  const [ptMode, setPtMode, ptModeLoaded] = useStoredState<'manage' | 'train'>('ptmode', 'manage');
+  const [ptTab, setPtTab] = useState<'clients' | 'account'>('clients');
   const reload = useCallback(() => {
     fetchProfile(userId).then(setProfile);
   }, [userId]);
@@ -109,10 +112,41 @@ function CloudApp({ userId }: { userId: string }) {
   const mine = useCloudPlans(userId, userId);
   const sessions = useCloudSessions(userId);
 
-  if (!profile) return <Center><ActivityIndicator color={colors.accent} /></Center>;
+  if (!profile || !ptModeLoaded) return <Center><ActivityIndicator color={colors.accent} /></Center>;
   if (client) return <ClientView me={userId} client={client} onBack={() => setClient(null)} />;
 
   const isPt = profile.role === 'pt';
+
+  if (isPt && ptMode === 'manage') {
+    return (
+      <View style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
+          {ptTab === 'clients' ? (
+            <ClientsScreen code={profile.invite_code} onOpen={setClient} />
+          ) : (
+            <AccountScreen
+              profile={profile}
+              onChanged={reload}
+              onSwitch={{
+                label: 'Passa alla modalità allenamento',
+                hint: 'Per caricare e fare anche le tue schede di allenamento. La gestione dei ragazzi resta la tua schermata principale.',
+                onPress: () => setPtMode('train'),
+              }}
+            />
+          )}
+        </View>
+        <TabBar
+          tabs={[
+            { key: 'clients', label: 'Ragazzi', icon: 'clients' },
+            { key: 'account', label: 'Account', icon: 'account' },
+          ]}
+          active={ptTab}
+          onChange={(k) => setPtTab(k as 'clients' | 'account')}
+        />
+      </View>
+    );
+  }
+
   return (
     <Home
       plans={mine.plans}
@@ -122,10 +156,29 @@ function CloudApp({ userId }: { userId: string }) {
       onFinishSession={sessions.add}
       canEdit={isPt}
       extraTabs={[
-        ...(isPt
-          ? [{ key: 'clients', label: 'Ragazzi', icon: 'clients' as const, render: () => <ClientsScreen code={profile.invite_code} onOpen={setClient} /> }]
-          : []),
-        { key: 'account', label: 'Account', icon: 'account' as const, render: () => <AccountScreen profile={profile} onChanged={reload} /> },
+        {
+          key: 'account',
+          label: 'Account',
+          icon: 'account' as const,
+          render: () => (
+            <AccountScreen
+              profile={profile}
+              onChanged={reload}
+              onSwitch={
+                isPt
+                  ? {
+                      label: 'Torna ai miei ragazzi',
+                      hint: 'Torna alla gestione dei ragazzi che segui.',
+                      onPress: () => {
+                        setPtTab('clients');
+                        setPtMode('manage');
+                      },
+                    }
+                  : undefined
+              }
+            />
+          ),
+        },
       ]}
     />
   );

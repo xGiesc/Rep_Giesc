@@ -26,6 +26,55 @@ export async function fetchClients(): Promise<Profile[]> {
   return ((data as Profile[]) ?? []).filter((p) => p.pt_id !== null);
 }
 
+export type ClientOverview = {
+  client: Profile;
+  plans: number;
+  workouts: number;
+  lastWorkout: string | null;
+  nextExpiry: string | null;
+  /** expired = c'è una scheda scaduta; soon = scade entro 7 giorni; ok; none = nessuna scadenza */
+  status: 'expired' | 'soon' | 'ok' | 'none';
+};
+
+/** Riepilogo di tutti i ragazzi del PT (home del PT). */
+export async function fetchClientsOverview(): Promise<ClientOverview[]> {
+  const clients = await fetchClients();
+  if (clients.length === 0) return [];
+  const ids = clients.map((c) => c.id);
+  const [pl, se] = await Promise.all([
+    db().from('plans').select('owner_id,expires_at').in('owner_id', ids),
+    db().from('sessions').select('user_id,date').in('user_id', ids).order('date', { ascending: false }).limit(2000),
+  ]);
+  const plans = (pl.data ?? []) as Array<{ owner_id: string; expires_at: string | null }>;
+  const sessions = (se.data ?? []) as Array<{ user_id: string; date: string }>;
+  const rows = clients.map((client) => {
+    const mine = plans.filter((p) => p.owner_id === client.id);
+    const ss = sessions.filter((x) => x.user_id === client.id);
+    const exp = mine.map((p) => p.expires_at).filter((x): x is string => !!x).sort();
+    const today = new Date();
+    const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const expired = exp.filter((d) => d < todayIso);
+    const upcoming = exp.filter((d) => d >= todayIso);
+    const nextExpiry = expired.length ? expired[expired.length - 1] : (upcoming[0] ?? null);
+    let status: ClientOverview['status'] = 'none';
+    if (expired.length) status = 'expired';
+    else if (upcoming.length) {
+      const days = Math.round((new Date(upcoming[0]).getTime() - new Date(todayIso).getTime()) / 86400000);
+      status = days <= 7 ? 'soon' : 'ok';
+    }
+    return {
+      client,
+      plans: mine.length,
+      workouts: ss.length,
+      lastWorkout: ss[0]?.date ?? null,
+      nextExpiry,
+      status,
+    };
+  });
+  const rank = { expired: 0, soon: 1, ok: 2, none: 3 } as const;
+  return rows.sort((a, b) => rank[a.status] - rank[b.status] || a.client.name.localeCompare(b.client.name));
+}
+
 export async function joinPt(code: string): Promise<boolean> {
   const { data, error } = await db().rpc('join_pt', { code });
   return !error && data === true;
@@ -48,7 +97,7 @@ export function useCloudPlans(ownerId: string, me: string) {
   const load = useCallback(async () => {
     const { data, error: e } = await db()
       .from('plans')
-      .select('id,name,exercises,owner_id,created_by,created_at')
+      .select('id,name,exercises,owner_id,created_by,created_at,expires_at')
       .eq('owner_id', ownerId)
       .order('created_at');
     if (e) setError(e.message);
@@ -60,6 +109,7 @@ export function useCloudPlans(ownerId: string, me: string) {
           name: r.name,
           exercises: r.exercises,
           byPt: r.created_by !== r.owner_id,
+          expiresAt: r.expires_at ?? undefined,
         })),
       );
     }
@@ -84,6 +134,7 @@ export function useCloudPlans(ownerId: string, me: string) {
         owner_id: ownerId,
         name: plan.name,
         exercises: plan.exercises,
+        expires_at: plan.expiresAt ?? null,
         updated_at: new Date().toISOString(),
       });
       if (e) {
@@ -119,7 +170,7 @@ export function useCloudSessions(userId: string) {
     setSessions([]);
     db()
       .from('sessions')
-      .select('id,plan_name,date,exercises')
+      .select('id,plan_name,plan_id,date,exercises')
       .eq('user_id', userId)
       .order('date', { ascending: false })
       .then(({ data }) => {
@@ -128,6 +179,7 @@ export function useCloudSessions(userId: string) {
           (data ?? []).map((r) => ({
             id: r.id,
             planName: r.plan_name,
+            planId: r.plan_id ?? undefined,
             date: r.date,
             exercises: r.exercises,
           })),
@@ -146,6 +198,7 @@ export function useCloudSessions(userId: string) {
         id: s.id,
         user_id: userId,
         plan_name: s.planName,
+        plan_id: s.planId ?? null,
         date: s.date,
         exercises: s.exercises,
       });

@@ -3,7 +3,8 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Header } from '../components';
 import { Logo } from '../Logo';
 import { colors, spacing } from '../theme';
-import { Plan } from '../types';
+import { expiryInfo } from '../expiry';
+import { Plan, Session } from '../types';
 
 export function PlansScreen({
   plans,
@@ -15,6 +16,7 @@ export function PlansScreen({
   canEdit = true,
   onOpen,
   onBack,
+  history = [],
 }: {
   plans: Plan[];
   onNew: () => void;
@@ -24,6 +26,7 @@ export function PlansScreen({
   canStart?: boolean;
   canEdit?: boolean;
   onOpen?: (plan: Plan) => void;
+  history?: Session[];
   onBack?: () => void;
 }) {
   return (
@@ -33,7 +36,7 @@ export function PlansScreen({
         onBack={onBack}
         right={
           onBack ? undefined : (
-            <Logo width={74} height={35} />
+            <Logo width={82} height={35} />
           )
         }
       />
@@ -49,6 +52,40 @@ export function PlansScreen({
             {plan.byPt && canStart ? (
               <Text style={styles.byPt}>Assegnata dal tuo personal trainer</Text>
             ) : null}
+            {(() => {
+              const ex = expiryInfo(plan.expiresAt);
+              const done = history.filter((h) => h.planId === plan.id).length;
+              return (
+                <View style={styles.pills}>
+                  {ex ? (
+                    <View
+                      style={[
+                        styles.pill,
+                        ex.tone === 'expired' && { backgroundColor: colors.accent },
+                        ex.tone === 'soon' && { backgroundColor: colors.accentSoft },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.pillText,
+                          ex.tone === 'expired' && { color: colors.accentText },
+                          ex.tone === 'soon' && { color: colors.accent },
+                        ]}
+                      >
+                        {ex.text}
+                      </Text>
+                    </View>
+                  ) : null}
+                  {done > 0 ? (
+                    <View style={styles.pill}>
+                      <Text style={styles.pillText}>
+                        {done} {done === 1 ? 'allenamento fatto' : 'allenamenti fatti'}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })()}
             <Text style={styles.muted}>
               {plan.exercises.length} esercizi
               {plan.exercises.length
@@ -92,6 +129,14 @@ export function PlansScreen({
 const styles = StyleSheet.create({
   list: { padding: spacing.lg, gap: spacing.md },
   planName: { color: colors.text, fontSize: 22, fontWeight: '900', letterSpacing: -0.3 },
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  pill: {
+    backgroundColor: colors.cardAlt,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  pillText: { color: colors.text, fontSize: 12, fontWeight: '700' },
   byPt: { color: colors.accent, fontSize: 12, fontWeight: '700' },
   muted: { color: colors.muted, fontSize: 13 },
   row: { flexDirection: 'row', gap: spacing.sm },

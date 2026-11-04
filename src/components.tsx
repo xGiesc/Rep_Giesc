@@ -39,7 +39,7 @@ export function Button({
         styles.button,
         {
           backgroundColor: bg,
-          borderColor: variant === 'ghost' ? colors.text : bg,
+          borderColor: variant === 'ghost' ? colors.border : bg,
           opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
         },
         style,
@@ -159,7 +159,7 @@ export function RestTimerBar({
             styles.timerFill,
             {
               width: `${Math.round((finished ? 1 : progress) * 100)}%`,
-              backgroundColor: '#ffffff',
+              backgroundColor: finished ? '#ffffff' : colors.accent,
             },
           ]}
         />
@@ -206,6 +206,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: '#f0f0f4',
     ...shadow,
   },
   label: { color: colors.muted, fontSize: 12, fontWeight: '600' },
@@ -227,7 +229,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: { color: colors.text, fontSize: 30, fontWeight: '900', letterSpacing: -0.5, flexShrink: 1 },
-  back: { color: colors.accent, fontSize: 16, fontWeight: '600' },
+  back: { color: colors.accent, fontSize: 16, fontWeight: '700' },
   chip: {
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -238,10 +240,10 @@ const styles = StyleSheet.create({
   },
   chipText: { color: colors.text, fontSize: 13, fontWeight: '600' },
   timerBar: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.ink,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: colors.ink,
     padding: spacing.md,
     gap: spacing.sm,
     shadowColor: '#000',

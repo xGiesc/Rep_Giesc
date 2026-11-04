@@ -3,17 +3,7 @@ import { SvgXml } from 'react-native-svg';
 import { logoSvg } from './logoSvg';
 import { colors } from './theme';
 
-/** Logo vettoriale. Di default nero su sfondo chiaro. */
-export function Logo({
-  width,
-  height,
-  color = colors.text,
-  background = colors.bg,
-}: {
-  width: number | string;
-  height: number | string;
-  color?: string;
-  background?: string;
-}) {
-  return <SvgXml xml={logoSvg(color, background)} width={width} height={height} />;
+/** Logo vettoriale (proporzioni 540×230). */
+export function Logo({ width, height }: { width: number | string; height: number | string }) {
+  return <SvgXml xml={logoSvg(colors.ink, colors.accent)} width={width} height={height} />;
 }

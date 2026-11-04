@@ -1,14 +1,16 @@
 export const colors = {
-  bg: '#f1f1f3',
+  bg: '#ffffff',
   card: '#ffffff',
-  cardAlt: '#f1f1f3',
-  border: '#e3e3e7',
-  text: '#0b0b0c',
-  muted: '#6f6f78',
-  accent: '#0b0b0c',
+  cardAlt: '#f4f4f7',
+  border: '#e4e4ea',
+  ink: '#14141a',
+  text: '#14141a',
+  muted: '#6b6b76',
+  accent: '#e30613',
+  accentSoft: '#fde8ea',
   accentText: '#ffffff',
-  success: '#0b0b0c',
-  danger: '#4a4a52',
+  success: '#14141a',
+  danger: '#14141a',
 };
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 };
@@ -16,9 +18,9 @@ export const radius = { sm: 10, md: 14, lg: 22, pill: 999 };
 
 /** Ombra morbida per card (su web e native). */
 export const shadow = {
-  shadowColor: '#000',
-  shadowOpacity: 0.07,
-  shadowRadius: 14,
-  shadowOffset: { width: 0, height: 4 },
-  elevation: 3,
+  shadowColor: '#14141a',
+  shadowOpacity: 0.09,
+  shadowRadius: 16,
+  shadowOffset: { width: 0, height: 5 },
+  elevation: 4,
 } as const;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Chip, Field, Header } from '../components';
+import { expiryInfo, inWeeks } from '../expiry';
 import { fmtRest } from '../format';
 import { colors, spacing } from '../theme';
 import { DEFAULT_REST, Exercise, Plan, newId, restOf } from '../types';
@@ -13,6 +14,7 @@ const toInt = (s: string, fallback: number, min = 1) => {
 };
 
 const REST_PRESETS = [30, 60, 90, 120, 180];
+const WEEK_PRESETS = [2, 4, 6, 8, 12];
 
 export function PlanEditor({
   plan,
@@ -30,6 +32,7 @@ export function PlanEditor({
     plan?.exercises ?? [],
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [expiresAt, setExpiresAt] = useState<string | undefined>(plan?.expiresAt);
 
   // modulo "esercizio" (nuovo oppure in modifica)
   const [picking, setPicking] = useState(false);
@@ -86,6 +89,7 @@ export function PlanEditor({
       id: plan?.id ?? newId(),
       name: name.trim() || 'Scheda senza nome',
       exercises,
+      expiresAt,
     });
   };
 
@@ -112,6 +116,30 @@ export function PlanEditor({
           onChangeText={setName}
           placeholder="Es. Push, Gambe, Full body…"
         />
+
+        <Card style={{ gap: spacing.sm }}>
+          <Text style={styles.formTitle}>Scadenza della scheda</Text>
+          <Text style={styles.muted}>
+            Dopo questa data la scheda risulta scaduta: è il momento del controllo con il tuo
+            personal trainer.
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.presets}>
+              <Chip label="Nessuna" active={!expiresAt} onPress={() => setExpiresAt(undefined)} />
+              {WEEK_PRESETS.map((w) => (
+                <Chip
+                  key={w}
+                  label={`${w} settimane`}
+                  active={expiresAt === inWeeks(w)}
+                  onPress={() => setExpiresAt(inWeeks(w))}
+                />
+              ))}
+            </View>
+          </ScrollView>
+          {expiresAt ? (
+            <Text style={styles.edit}>{expiryInfo(expiresAt)?.text} (da oggi)</Text>
+          ) : null}
+        </Card>
 
         <Text style={styles.section}>Esercizi</Text>
         {exercises.length === 0 ? (

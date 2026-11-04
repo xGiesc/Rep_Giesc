@@ -21,6 +21,8 @@ create table if not exists public.plans (
   updated_at timestamptz not null default now()
 );
 
+alter table public.plans add column if not exists expires_at date;
+
 create table if not exists public.sessions (
   id text primary key,
   user_id uuid not null references public.profiles(id) on delete cascade,
@@ -28,6 +30,8 @@ create table if not exists public.sessions (
   date timestamptz not null,
   exercises jsonb not null default '[]'
 );
+
+alter table public.sessions add column if not exists plan_id text;
 
 -- funzioni di appoggio (security definer: evitano ricorsioni nelle policy)
 create or replace function public.is_pt_of(uid uuid) returns boolean

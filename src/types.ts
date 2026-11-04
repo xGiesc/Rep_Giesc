@@ -20,6 +20,8 @@ export type Plan = {
   exercises: Exercise[];
   /** Scheda creata dal personal trainer (solo account cloud). */
   byPt?: boolean;
+  /** Fine validità della scheda (AAAA-MM-GG), decisa dal PT. */
+  expiresAt?: string;
 };
 
 export type SetLog = {
@@ -35,6 +37,7 @@ export type SessionExercise = {
 export type Session = {
   id: string;
   planName: string;
+  planId?: string;
   date: string; // ISO
   exercises: SessionExercise[];
 };

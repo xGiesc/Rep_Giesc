@@ -28,14 +28,14 @@ export const LEN = {
 };
 
 export const COLORS = {
-  bg: '#f6f6f8',
+  bg: '#f3f3f6',
   floor: '#dcdce2',
   body: '#cfd1d8',
   bodyFar: '#a3a6b0',
   torso: '#b8bbc4',
   head: '#dadde3',
   outline: '#4d515c',
-  red: '#111111',
+  red: '#e30613',
   metal: '#5a6070',
   plate: '#30343f',
   bench: '#9aa1ae',

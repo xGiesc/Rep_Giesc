@@ -22,7 +22,7 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "backgroundColor": "#f1f1f3",
+    "backgroundColor": "#ffffff",
     "experiments": {
       "baseUrl": "/Rep_Giesc"
     }
