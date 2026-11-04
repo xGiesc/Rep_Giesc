@@ -79,6 +79,9 @@ export function ExerciseAnimation({
                   key={i}
                   points={s.pts.map((p) => p.join(',')).join(' ')}
                   fill={s.c}
+                  stroke={s.sc}
+                  strokeWidth={s.sw}
+                  strokeLinejoin="round"
                   opacity={s.o ?? 1}
                 />
               );

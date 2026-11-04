@@ -31,6 +31,17 @@ export const LEN = {
 export const COLORS = {
   bg: DARK ? '#262624' : '#f3f3f6',
   floor: DARK ? '#4a4a47' : '#dcdce2',
+  skin: '#e9b995',
+  skinFar: '#c79878',
+  skinShade: '#d39f7c',
+  hair: '#3b2f2a',
+  shirt: DARK ? '#6b6f7b' : '#4b4f5b',
+  shirtFar: DARK ? '#555966' : '#3a3d47',
+  shorts: DARK ? '#3c3f49' : '#2a2c33',
+  shortsFar: DARK ? '#30323a' : '#202228',
+  shoe: '#f2f2f4',
+  shoeFar: '#b9bbc2',
+  sole: '#2a2c33',
   body: '#cfd1d8',
   bodyFar: '#a3a6b0',
   torso: '#b8bbc4',
@@ -47,7 +58,7 @@ export type Shape =
   | { k: 'line'; x1: number; y1: number; x2: number; y2: number; w: number; c: string; o?: number }
   | { k: 'circle'; cx: number; cy: number; r: number; c: string; o?: number }
   | { k: 'rect'; x: number; y: number; w: number; h: number; rx?: number; c: string; o?: number }
-  | { k: 'poly'; pts: V[]; c: string; o?: number };
+  | { k: 'poly'; pts: V[]; c: string; o?: number; sc?: string; sw?: number };
 
 /** Dove va la mano: posizione assoluta, relativa a spalla/anca, oppure angoli (FK). */
 export type Hand =
@@ -333,6 +344,50 @@ function chain(out: Shape[], parts: Array<[V, V, number]>, fill: string) {
   for (const [a, b, w] of parts) out.push(line(a, b, w, fill));
 }
 
+/** Punto lungo un segmento. */
+const along = (a: V, b: V, t: number): V => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
+/**
+ * Arto "a tubo": larghezza variabile lungo il segmento (muscolo che si gonfia),
+ * con contorno e estremità arrotondate.
+ */
+function tube(out: Shape[], a: V, b: V, widths: Array<[number, number]>, fill: string, o?: number) {
+  const d = Math.atan2(b[1] - a[1], b[0] - a[0]);
+  const nx = -Math.sin(d);
+  const ny = Math.cos(d);
+  const left: V[] = [];
+  const right: V[] = [];
+  for (const [t, w] of widths) {
+    const p = along(a, b, t);
+    left.push([p[0] + (nx * w) / 2, p[1] + (ny * w) / 2]);
+    right.push([p[0] - (nx * w) / 2, p[1] - (ny * w) / 2]);
+  }
+  out.push({ k: 'poly', pts: [...left, ...right.reverse()], c: fill, o, sc: COLORS.outline, sw: 2 });
+  const w0 = widths[0][1];
+  const w1 = widths[widths.length - 1][1];
+  out.push({ k: 'circle', cx: a[0], cy: a[1], r: w0 / 2 + 1, c: COLORS.outline, o });
+  out.push({ k: 'circle', cx: b[0], cy: b[1], r: w1 / 2 + 1, c: COLORS.outline, o });
+  out.push({ k: 'circle', cx: a[0], cy: a[1], r: w0 / 2 - 0.5, c: fill, o });
+  out.push({ k: 'circle', cx: b[0], cy: b[1], r: w1 / 2 - 0.5, c: fill, o });
+  // di nuovo il riempimento sopra i bordi dei cerchi (niente righe ai giunti)
+  out.push({ k: 'poly', pts: [...left, ...[...right].reverse()], c: fill, o });
+}
+
+function leg(out: Shape[], hip: V, knee: V, ankle: V, heel: V, toe: V, far: boolean) {
+  const skin = far ? COLORS.skinFar : COLORS.skin;
+  const shorts = far ? COLORS.shortsFar : COLORS.shorts;
+  const shoe = far ? COLORS.shoeFar : COLORS.shoe;
+  // scarpa
+  chain(out, [[heel, toe, 9]], shoe);
+  out.push(line(add(heel, [1, 3.5]), add(toe, [0, 3.5]), 2.5, COLORS.sole));
+  // polpaccio e coscia
+  tube(out, knee, ankle, [[0, 13], [0.3, 15], [0.7, 11], [1, 8]], skin);
+  tube(out, hip, knee, [[0, 21], [0.45, 19], [1, 13]], skin);
+  // pantaloncino
+  const hem = along(hip, knee, 0.5);
+  tube(out, hip, hem, [[0, 21], [1, 19]], shorts);
+}
+
 export function buildFrame(
   pattern: Pattern,
   s: number,
@@ -345,45 +400,56 @@ export function buildFrame(
   const scene = pattern.scene(j, impl);
   const out: Shape[] = [...scene.back];
 
+  // ombra a terra
+  out.push({ k: 'rect', x: j.hip[0] - 62, y: GROUND - 1, w: 124, h: 5, rx: 2.5, c: '#000000', o: DARK ? 0.35 : 0.1 });
+
   // gamba lontana
-  if (j.far) {
-    out.push(line(j.hip, j.far.knee, 15, COLORS.bodyFar));
-    out.push(line(j.far.knee, j.far.ankle, 11, COLORS.bodyFar));
-    out.push(line(j.far.heel, j.far.toe, 7, COLORS.bodyFar));
-  }
+  if (j.far) leg(out, j.hip, j.far.knee, j.far.ankle, j.far.heel, j.far.toe, true);
+
   // braccio lontano, appena spostato per dare profondità
   const off: V = [-5, -2];
   const sh2 = add(j.shoulder, off);
-  out.push(line(sh2, add(j.elbow, off), 10, COLORS.bodyFar));
-  out.push(line(add(j.elbow, off), add(j.wrist, off), 8, COLORS.bodyFar));
+  const el2 = add(j.elbow, off);
+  const wr2 = add(j.wrist, off);
+  tube(out, el2, wr2, [[0, 10], [0.4, 10], [1, 7]], COLORS.skinFar);
+  tube(out, sh2, el2, [[0, 12], [0.5, 12], [1, 9]], COLORS.skinFar);
+  tube(out, sh2, along(sh2, el2, 0.45), [[0, 13], [1, 12.5]], COLORS.shirtFar);
 
-  // busto e bacino (contorno + riempimento)
-  out.push(line(j.hip, j.shoulder, 28 + OW, COLORS.outline));
-  out.push({ k: 'circle', cx: j.hip[0], cy: j.hip[1], r: 14 + OW / 2, c: COLORS.outline });
-  out.push(line(j.hip, j.shoulder, 28, COLORS.torso));
-  out.push({ k: 'circle', cx: j.hip[0], cy: j.hip[1], r: 14, c: COLORS.torso });
+  // busto: sagoma che si allarga al petto e si stringe in vita
+  const dir = Math.atan2(j.shoulder[1] - j.hip[1], j.shoulder[0] - j.hip[0]);
+  const n: V = [Math.cos(dir + Math.PI / 2), Math.sin(dir + Math.PI / 2)]; // davanti
+  const at = (t: number, fwd: number): V => [
+    j.hip[0] + (j.shoulder[0] - j.hip[0]) * t + n[0] * fwd,
+    j.hip[1] + (j.shoulder[1] - j.hip[1]) * t + n[1] * fwd,
+  ];
+  const torso: V[] = [
+    at(0, -13), at(0.35, -11.5), at(0.75, -13), at(1, -10),
+    at(1, 9), at(0.8, 14.5), at(0.5, 11), at(0.25, 11), at(0, 13),
+  ];
+  out.push({ k: 'poly', pts: torso, c: COLORS.shirt, sc: COLORS.outline, sw: 2.2 });
+  // bordo del pantaloncino alla vita
+  out.push({ k: 'poly', pts: [at(0, -13), at(0.14, -12), at(0.14, 12), at(0, 13)], c: COLORS.shorts });
 
   // gamba vicina
-  chain(out, [
-    [j.hip, j.knee, 17],
-    [j.knee, j.ankle, 13],
-    [j.heel, j.toe, 7],
-  ], COLORS.body);
+  leg(out, j.hip, j.knee, j.ankle, j.heel, j.toe, false);
 
-  // collo e testa
-  out.push(line(j.shoulder, j.neckEnd, 8, COLORS.head));
-  out.push({ k: 'circle', cx: j.head[0], cy: j.head[1], r: LEN.head + OW / 2, c: COLORS.outline });
-  out.push({ k: 'circle', cx: j.head[0], cy: j.head[1], r: LEN.head, c: COLORS.head });
+  // collo e testa (profilo: capelli dietro, viso davanti, naso)
+  const hd = Math.atan2(j.head[1] - j.neckEnd[1], j.head[0] - j.neckEnd[0]);
+  const fwd: V = [Math.cos(hd + Math.PI / 2), Math.sin(hd + Math.PI / 2)];
+  out.push(line(j.shoulder, j.neckEnd, 9 + OW, COLORS.outline));
+  out.push(line(j.shoulder, j.neckEnd, 9, COLORS.skin));
+  out.push({ k: 'circle', cx: j.head[0], cy: j.head[1], r: LEN.head + 1.5, c: COLORS.outline });
+  out.push({ k: 'circle', cx: j.head[0], cy: j.head[1], r: LEN.head, c: COLORS.hair });
+  out.push({ k: 'circle', cx: j.head[0] + fwd[0] * 2.2, cy: j.head[1] + fwd[1] * 2.2, r: LEN.head * 0.82, c: COLORS.skin });
+  out.push({ k: 'circle', cx: j.head[0] + fwd[0] * (LEN.head - 0.5), cy: j.head[1] + fwd[1] * (LEN.head - 0.5), r: 2.6, c: COLORS.skin });
+  out.push({ k: 'circle', cx: j.head[0] + fwd[0] * 4.5 + Math.cos(hd) * 2, cy: j.head[1] + fwd[1] * 4.5 + Math.sin(hd) * 2, r: 1.1, c: COLORS.outline });
 
   // braccio vicino
-  out.push({ k: 'circle', cx: j.shoulder[0], cy: j.shoulder[1], r: 8 + OW / 2, c: COLORS.outline });
-  chain(out, [
-    [j.shoulder, j.elbow, 11],
-    [j.elbow, j.wrist, 9],
-  ], COLORS.body);
-  out.push({ k: 'circle', cx: j.wrist[0], cy: j.wrist[1], r: 5 + OW / 2, c: COLORS.outline });
-  out.push({ k: 'circle', cx: j.shoulder[0], cy: j.shoulder[1], r: 8, c: COLORS.body });
-  out.push({ k: 'circle', cx: j.wrist[0], cy: j.wrist[1], r: 5, c: COLORS.body });
+  tube(out, j.elbow, j.wrist, [[0, 11], [0.35, 12], [1, 7.5]], COLORS.skin);
+  tube(out, j.shoulder, j.elbow, [[0, 14], [0.5, 13], [1, 10]], COLORS.skin);
+  tube(out, j.shoulder, along(j.shoulder, j.elbow, 0.45), [[0, 15], [1, 14]], COLORS.shirt);
+  out.push({ k: 'circle', cx: j.wrist[0], cy: j.wrist[1], r: 5.6, c: COLORS.outline });
+  out.push({ k: 'circle', cx: j.wrist[0], cy: j.wrist[1], r: 4.4, c: COLORS.skin });
 
   // muscoli: prima i secondari (chiari), poi i principali (pieni)
   for (const m of secondary) out.push(...muscleShapes(j, m, 0.38));
