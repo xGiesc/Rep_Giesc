@@ -1,0 +1,105 @@
+import React, { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, Field } from '../components';
+import { supabase } from '../supabase';
+import { colors, spacing } from '../theme';
+
+export function AuthScreen() {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const submit = async () => {
+    if (!supabase) return;
+    setBusy(true);
+    setMsg(null);
+    const mail = email.trim();
+    if (mode === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({ email: mail, password });
+      if (error) setMsg('Email o password non corrette.');
+    } else {
+      const { data, error } = await supabase.auth.signUp({
+        email: mail,
+        password,
+        options: { data: { name: name.trim(), invite_code: code.trim() } },
+      });
+      if (error) {
+        setMsg(
+          /registered|already/i.test(error.message)
+            ? 'Questa email è già registrata: usa "Accedi".'
+            : /password/i.test(error.message)
+              ? 'La password deve avere almeno 6 caratteri.'
+              : 'Registrazione non riuscita: ' + error.message,
+        );
+      } else if (!data.session) {
+        setMsg('Registrazione inviata: controlla la tua email per confermare, poi accedi.');
+      }
+    }
+    setBusy(false);
+  };
+
+  const ok = email.includes('@') && password.length >= 6 && (mode === 'login' || name.trim());
+
+  return (
+    <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+      <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+      <View style={styles.switch}>
+        <Button
+          label="Accedi"
+          variant={mode === 'login' ? 'primary' : 'ghost'}
+          onPress={() => setMode('login')}
+          style={{ flex: 1 }}
+        />
+        <Button
+          label="Registrati"
+          variant={mode === 'register' ? 'primary' : 'ghost'}
+          onPress={() => setMode('register')}
+          style={{ flex: 1 }}
+        />
+      </View>
+      {mode === 'register' ? (
+        <Field label="Nome" value={name} onChangeText={setName} placeholder="Come ti chiami" />
+      ) : null}
+      <Field
+        label="Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <Field
+        label="Password (minimo 6 caratteri)"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        autoCapitalize="none"
+      />
+      {mode === 'register' ? (
+        <Field
+          label="Codice del tuo personal trainer (se ce l’hai)"
+          value={code}
+          onChangeText={(t) => setCode(t.toUpperCase())}
+          autoCapitalize="characters"
+          placeholder="Es. A1B2C3"
+        />
+      ) : null}
+      {msg ? <Text style={styles.msg}>{msg}</Text> : null}
+      <Button
+        label={busy ? '…' : mode === 'login' ? 'Accedi' : 'Crea account'}
+        onPress={submit}
+        disabled={busy || !ok}
+      />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  body: { padding: spacing.lg, gap: spacing.md },
+  logo: { width: '100%', height: 150, marginVertical: spacing.lg },
+  switch: { flexDirection: 'row', gap: spacing.sm },
+  msg: { color: colors.danger, fontSize: 14, textAlign: 'center' },
+});

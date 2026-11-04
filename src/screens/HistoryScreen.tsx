@@ -20,10 +20,18 @@ const formatDate = (iso: string) => {
   });
 };
 
-export function HistoryScreen({ history }: { history: Session[] }) {
+export function HistoryScreen({
+  history,
+  title = 'Storico',
+  onBack,
+}: {
+  history: Session[];
+  title?: string;
+  onBack?: () => void;
+}) {
   return (
     <View style={{ flex: 1 }}>
-      <Header title="Storico" />
+      <Header title={title} onBack={onBack} />
       <ScrollView contentContainerStyle={styles.list}>
         {history.length === 0 ? (
           <Text style={styles.empty}>

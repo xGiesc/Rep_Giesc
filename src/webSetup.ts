@@ -21,10 +21,10 @@ export function setupWeb() {
   add('meta', { name: 'theme-color', content: '#0f1115' });
   add('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' });
   add('meta', { name: 'mobile-web-app-capable', content: 'yes' });
-  add('meta', { name: 'apple-mobile-web-app-title', content: 'Gym Tracker' });
+  add('meta', { name: 'apple-mobile-web-app-title', content: 'GRG Personal Trainer' });
   add('meta', {
     name: 'apple-mobile-web-app-status-bar-style',
     content: 'black-translucent',
   });
-  document.title = 'Gym Tracker';
+  document.title = 'GRG Personal Trainer';
 }

@@ -1,4 +1,4 @@
-# Gym Tracker
+# GRG Personal Trainer
 
 App per gestire gli allenamenti in palestra (stile Coach Plus): crei le tue schede, registri kg e ripetizioni serie per serie e rivedi lo storico. Un solo codice (React Native + Expo) per **iPhone, Android e web**.
 
@@ -9,6 +9,20 @@ App per gestire gli allenamenti in palestra (stile Coach Plus): crei le tue sche
 - **Scheda esercizio** ("Video e info"): per i movimenti principali (circa 115 esercizi su 876) un omino animato disegnato dall’app, con i muscoli in rosso; per gli altri le foto di partenza e arrivo. Sempre muscoli coinvolti e istruzioni (animazioni schematiche, non video reali)
 - **Storico**: allenamenti passati con serie e volume totale (kg × ripetizioni)
 - Dati salvati sul dispositivo (su web nel browser), nessun account necessario
+
+## Account, PT e clienti (Supabase)
+
+Con il cloud attivo ogni persona accede con email e password e ha le sue schede e il suo storico. Il **personal trainer** ha in più la scheda **Ragazzi**: vede i suoi clienti, crea/modifica/elimina le loro schede (compaiono subito sul loro telefono con la dicitura "Assegnata dal tuo personal trainer") e consulta il loro storico. I clienti si collegano al PT con il **codice PT** (6 caratteri, in Account del PT), in registrazione o dopo.
+
+Attivazione (una volta sola):
+
+1. Crea un progetto gratuito su https://supabase.com
+2. *SQL Editor* → incolla tutto `supabase/schema.sql` → Run
+3. *Authentication → Providers → Email*: disattiva **Confirm email** (così la registrazione è immediata)
+4. *Project Settings → API*: copia **Project URL** e la chiave **anon public** in `src/config.ts`
+5. Registrati nell'app, poi in SQL Editor: `update public.profiles set role = 'pt' where email = 'la-tua-email';`
+
+Senza queste chiavi l'app funziona solo sul dispositivo, senza login.
 
 ## Dati degli esercizi
 
@@ -54,6 +68,8 @@ Installa l'app **Expo Go** sul telefono (iPhone o Android) e inquadra il QR code
 App.tsx                      navigazione e stato globale
 src/types.ts                 tipi (Plan, Exercise, Session)
 src/storage.ts               salvataggio persistente
+src/cloud.ts                 dati su Supabase (schede, storico, profili)
+src/Home.tsx                 schermate principali riusate da atleta e PT
 src/exerciseDb.ts            ricerca esercizi, immagini, etichette in italiano
 src/anim/                    motore delle animazioni SVG, movimenti e abbinamento agli esercizi
 src/useRestTimer.ts          timer di recupero

@@ -1,25 +1,22 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import {
   SafeAreaProvider,
   SafeAreaView,
 } from 'react-native-safe-area-context';
-import { HistoryScreen } from './src/screens/HistoryScreen';
-import { PlanEditor } from './src/screens/PlanEditor';
-import { PlansScreen } from './src/screens/PlansScreen';
-import { WorkoutScreen } from './src/screens/WorkoutScreen';
+import { Profile, fetchProfile, useCloudPlans, useCloudSessions } from './src/cloud';
+import { Home } from './src/Home';
+import { AccountScreen } from './src/screens/AccountScreen';
+import { AuthScreen } from './src/screens/AuthScreen';
+import { ClientsScreen } from './src/screens/ClientsScreen';
 import { useStoredState } from './src/storage';
-import { colors, spacing } from './src/theme';
+import { cloudEnabled, supabase } from './src/supabase';
+import { colors } from './src/theme';
 import { Plan, Session } from './src/types';
 import { setupWeb } from './src/webSetup';
 
 setupWeb();
-
-type Route =
-  | { name: 'tabs' }
-  | { name: 'editor'; plan: Plan | null }
-  | { name: 'workout'; plan: Plan };
 
 const SAMPLE_PLANS: Plan[] = [
   {
@@ -54,17 +51,12 @@ const SAMPLE_PLANS: Plan[] = [
   },
 ];
 
-export default function App() {
+
+/** Senza cloud configurato: tutto sul dispositivo, senza login. */
+function LocalApp() {
   const [plans, setPlans, plansLoaded] = useStoredState<Plan[]>('plans', []);
   const [history, setHistory] = useStoredState<Session[]>('history', []);
-  const [tab, setTab] = useState<'plans' | 'history'>('plans');
-  const [route, setRoute] = useState<Route>({ name: 'tabs' });
-
-  // Solo alla primissima apertura inserisce una scheda d'esempio
-  const [seeded, setSeeded, seededLoaded] = useStoredState<boolean>(
-    'seeded',
-    false,
-  );
+  const [seeded, setSeeded, seededLoaded] = useStoredState<boolean>('seeded', false);
   useEffect(() => {
     if (plansLoaded && seededLoaded && !seeded) {
       setSeeded(true);
@@ -72,97 +64,97 @@ export default function App() {
     }
   }, [plansLoaded, seededLoaded, seeded, plans.length, setPlans, setSeeded]);
 
-  const goHome = () => setRoute({ name: 'tabs' });
+  return (
+    <Home
+      plans={plans}
+      history={history}
+      onSavePlan={(p) =>
+        setPlans((prev) =>
+          prev.some((x) => x.id === p.id) ? prev.map((x) => (x.id === p.id ? p : x)) : [...prev, p],
+        )
+      }
+      onDeletePlan={(id) => setPlans((prev) => prev.filter((x) => x.id !== id))}
+      onFinishSession={(s) => setHistory((prev) => [s, ...prev])}
+    />
+  );
+}
 
-  let content: React.ReactNode;
-  if (route.name === 'editor') {
-    content = (
-      <PlanEditor
-        plan={route.plan}
-        onBack={goHome}
-        onSave={(p) => {
-          setPlans((prev) =>
-            prev.some((x) => x.id === p.id)
-              ? prev.map((x) => (x.id === p.id ? p : x))
-              : [...prev, p],
-          );
-          goHome();
-        }}
-        onDelete={(id) => {
-          setPlans((prev) => prev.filter((x) => x.id !== id));
-          goHome();
-        }}
-      />
-    );
-  } else if (route.name === 'workout') {
-    content = (
-      <WorkoutScreen
-        plan={route.plan}
-        history={history}
-        onCancel={goHome}
-        onFinish={(s) => {
-          setHistory((prev) => [s, ...prev]);
-          setTab('history');
-          goHome();
-        }}
-      />
-    );
-  } else {
-    content = (
-      <View style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
-          {tab === 'plans' ? (
-            <PlansScreen
-              plans={plans}
-              onNew={() => setRoute({ name: 'editor', plan: null })}
-              onEdit={(plan) => setRoute({ name: 'editor', plan })}
-              onStart={(plan) => setRoute({ name: 'workout', plan })}
-            />
-          ) : (
-            <HistoryScreen history={history} />
-          )}
-        </View>
-        <View style={styles.tabBar}>
-          <TabButton
-            label="Schede"
-            active={tab === 'plans'}
-            onPress={() => setTab('plans')}
-          />
-          <TabButton
-            label="Storico"
-            active={tab === 'history'}
-            onPress={() => setTab('history')}
-          />
-        </View>
-      </View>
-    );
-  }
+/** Vista del PT su un suo cliente: modifica le schede, vede lo storico. */
+function ClientView({ me, client, onBack }: { me: string; client: Profile; onBack: () => void }) {
+  const cp = useCloudPlans(client.id, me);
+  const cs = useCloudSessions(client.id);
+  const label = client.name || client.email || 'Cliente';
+  return (
+    <Home
+      plans={cp.plans}
+      history={cs.sessions}
+      canTrain={false}
+      plansTitle={`Schede di ${label}`}
+      historyTitle={`Storico di ${label}`}
+      onBack={onBack}
+      onSavePlan={cp.save}
+      onDeletePlan={cp.remove}
+    />
+  );
+}
 
+function CloudApp({ userId }: { userId: string }) {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [client, setClient] = useState<Profile | null>(null);
+  const reload = useCallback(() => {
+    fetchProfile(userId).then(setProfile);
+  }, [userId]);
+  useEffect(reload, [reload]);
+
+  const mine = useCloudPlans(userId, userId);
+  const sessions = useCloudSessions(userId);
+
+  if (!profile) return <Center><ActivityIndicator color={colors.accent} /></Center>;
+  if (client) return <ClientView me={userId} client={client} onBack={() => setClient(null)} />;
+
+  const isPt = profile.role === 'pt';
+  return (
+    <Home
+      plans={mine.plans}
+      history={sessions.sessions}
+      onSavePlan={mine.save}
+      onDeletePlan={mine.remove}
+      onFinishSession={sessions.add}
+      extraTabs={[
+        ...(isPt
+          ? [{ key: 'clients', label: 'Ragazzi', render: () => <ClientsScreen code={profile.invite_code} onOpen={setClient} /> }]
+          : []),
+        { key: 'account', label: 'Account', render: () => <AccountScreen profile={profile} onChanged={reload} /> },
+      ]}
+    />
+  );
+}
+
+function CloudGate() {
+  const [userId, setUserId] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user.id ?? null));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setUserId(s?.user.id ?? null));
+    return () => data.subscription.unsubscribe();
+  }, []);
+  if (userId === undefined) return <Center><ActivityIndicator color={colors.accent} /></Center>;
+  if (userId === null) return <AuthScreen />;
+  return <CloudApp key={userId} userId={userId} />;
+}
+
+function Center({ children }: { children: React.ReactNode }) {
+  return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>{children}</View>;
+}
+
+export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.root}>
         <StatusBar style="light" />
-        <View style={styles.container}>{content}</View>
+        <View style={styles.container}>{cloudEnabled ? <CloudGate /> : <LocalApp />}</View>
       </SafeAreaView>
     </SafeAreaProvider>
-  );
-}
-
-function TabButton({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable onPress={onPress} style={styles.tab}>
-      <Text style={[styles.tabText, active && { color: colors.accent }]}>
-        {label}
-      </Text>
-    </Pressable>
   );
 }
 
@@ -170,12 +162,4 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   // Su web limita la larghezza per un aspetto "da telefono" anche sul PC
   container: { flex: 1, width: '100%', maxWidth: 560, alignSelf: 'center' },
-  tabBar: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.card,
-  },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: spacing.md },
-  tabText: { color: colors.muted, fontWeight: '700', fontSize: 15 },
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Header } from '../components';
 import { colors, spacing } from '../theme';
 import { Plan } from '../types';
@@ -9,15 +9,33 @@ export function PlansScreen({
   onNew,
   onEdit,
   onStart,
+  title = 'Le mie schede',
+  canStart = true,
+  onBack,
 }: {
   plans: Plan[];
   onNew: () => void;
   onEdit: (plan: Plan) => void;
   onStart: (plan: Plan) => void;
+  title?: string;
+  canStart?: boolean;
+  onBack?: () => void;
 }) {
   return (
     <View style={{ flex: 1 }}>
-      <Header title="Le mie schede" />
+      <Header
+        title={title}
+        onBack={onBack}
+        right={
+          onBack ? undefined : (
+            <Image
+              source={require('../../assets/logo.png')}
+              style={{ width: 70, height: 33 }}
+              resizeMode="contain"
+            />
+          )
+        }
+      />
       <ScrollView contentContainerStyle={styles.list}>
         {plans.length === 0 ? (
           <Text style={styles.empty}>
@@ -27,6 +45,9 @@ export function PlansScreen({
         {plans.map((plan) => (
           <Card key={plan.id} style={{ gap: spacing.md }}>
             <Text style={styles.planName}>{plan.name}</Text>
+            {plan.byPt && canStart ? (
+              <Text style={styles.byPt}>Assegnata dal tuo personal trainer</Text>
+            ) : null}
             <Text style={styles.muted}>
               {plan.exercises.length} esercizi
               {plan.exercises.length
@@ -34,12 +55,14 @@ export function PlansScreen({
                 : ''}
             </Text>
             <View style={styles.row}>
-              <Button
-                label="Inizia"
-                onPress={() => onStart(plan)}
-                disabled={plan.exercises.length === 0}
-                style={{ flex: 1 }}
-              />
+              {canStart ? (
+                <Button
+                  label="Inizia"
+                  onPress={() => onStart(plan)}
+                  disabled={plan.exercises.length === 0}
+                  style={{ flex: 1 }}
+                />
+              ) : null}
               <Button
                 label="Modifica"
                 variant="ghost"
@@ -58,6 +81,7 @@ export function PlansScreen({
 const styles = StyleSheet.create({
   list: { padding: spacing.lg, gap: spacing.md },
   planName: { color: colors.text, fontSize: 20, fontWeight: '700' },
+  byPt: { color: colors.accent, fontSize: 12, fontWeight: '700' },
   muted: { color: colors.muted, fontSize: 13 },
   row: { flexDirection: 'row', gap: spacing.sm },
   empty: { color: colors.muted, textAlign: 'center', marginTop: spacing.xl },

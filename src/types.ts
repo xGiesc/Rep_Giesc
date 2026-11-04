@@ -18,6 +18,8 @@ export type Plan = {
   id: string;
   name: string;
   exercises: Exercise[];
+  /** Scheda creata dal personal trainer (solo account cloud). */
+  byPt?: boolean;
 };
 
 export type SetLog = {

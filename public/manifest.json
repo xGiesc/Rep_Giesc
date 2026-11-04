@@ -1,6 +1,6 @@
 {
-  "name": "Gym Tracker",
-  "short_name": "Gym Tracker",
+  "name": "GRG Personal Trainer",
+  "short_name": "GRG",
   "description": "Schede, allenamenti e storico per la palestra",
   "start_url": "./",
   "scope": "./",
