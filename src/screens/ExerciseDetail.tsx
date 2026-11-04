@@ -49,7 +49,7 @@ export function ExerciseDetail({
               secondary={secondary}
             />
             <Text style={styles.mediaHint}>
-              Animazione schematica · in {brand.word} i muscoli che lavorano
+              Animazione schematica · in rosso i muscoli che lavorano
             </Text>
           </View>
         ) : (

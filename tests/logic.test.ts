@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildFrame, VIEW } from '../src/anim/engine';
+import { buildFrame } from '../src/anim/engine';
 import { animationForName } from '../src/anim/mapping';
 import { PATTERNS } from '../src/anim/patterns';
 import { CATALOG, MOVEMENT_MUSCLES, MOVEMENT_STEPS } from '../src/catalog';
@@ -33,14 +33,21 @@ test('animazioni: ogni fotogramma è valido (niente NaN, tutto nel riquadro)', (
   for (const [id, p] of Object.entries(PATTERNS)) {
     for (const impl of ['barbell', 'dumbbell', 'kettlebell', 'cable', 'none'] as const) {
       for (let s = 0; s <= 1; s += 0.125) {
-        const shapes = buildFrame(p, s, impl, ['chest', 'biceps'], ['triceps']);
-        assert.ok(shapes.length > 8, `${id}: forme`);
+        const { shapes, vb } = buildFrame(p, s, impl, ['chest', 'biceps'], ['triceps']);
+        assert.ok(shapes.length > 30, `${id}: forme`);
+        assert.ok(vb.every(Number.isFinite) && vb[2] > 50 && vb[3] > 40, `${id}: riquadro`);
+        const [x0, y0, w, h] = vb;
         for (const sh of shapes) {
-          const nums = sh.k === 'line' ? [sh.x1, sh.y1, sh.x2, sh.y2] : sh.k === 'circle' ? [sh.cx, sh.cy] : sh.k === 'rect' ? [sh.x, sh.y] : sh.pts.flat();
-          for (const n of nums) {
+          const nums =
+            sh.k === 'line' ? [sh.x1, sh.y1, sh.x2, sh.y2] : sh.k === 'circle' || sh.k === 'ellipse' ? [sh.cx, sh.cy] : (sh.d.match(/-?\d+(\.\d+)?/g) ?? []).map(Number);
+          assert.ok(nums.length > 0, `${id}: forma vuota`);
+          nums.forEach((n, i) => {
             assert.ok(Number.isFinite(n), `${id} ${impl} ${s}: valore non valido`);
-            assert.ok(n > -40 && n < VIEW.w + 40, `${id} ${impl} ${s}: forma fuori dal riquadro (${n})`);
-          }
+            const lo = i % 2 === 0 ? x0 : y0;
+            const size = i % 2 === 0 ? w : h;
+            // il pavimento/ombra può uscire un po' dal riquadro, tutto il resto no
+            assert.ok(n > lo - size * 0.6 && n < lo + size * 1.6, `${id} ${impl} ${s}: forma lontana dal riquadro (${n})`);
+          });
         }
       }
     }
@@ -49,8 +56,8 @@ test('animazioni: ogni fotogramma è valido (niente NaN, tutto nel riquadro)', (
 
 test('movimenti diversi a inizio e fine (l’animazione si muove davvero)', () => {
   for (const [id, p] of Object.entries(PATTERNS)) {
-    const a = JSON.stringify(buildFrame(p, 0, 'none', [], []));
-    const b = JSON.stringify(buildFrame(p, 1, 'none', [], []));
+    const a = JSON.stringify(buildFrame(p, 0, 'none', [], []).shapes);
+    const b = JSON.stringify(buildFrame(p, 1, 'none', [], []).shapes);
     assert.notEqual(a, b, `${id}: fermo`);
   }
 });
