@@ -115,7 +115,7 @@ test.describe('login e ruoli', () => {
     await expect(page.getByText(/Scaduta il/)).toBeVisible();
   });
 
-  test('PT: home = atleti, niente Schede/Storico, switch modalità, modifica schede dell'atleta', async ({ page }, info) => {
+  test('PT: home = atleti, niente Schede/Storico, switch modalità, modifica schede dell’atleta', async ({ page }, info) => {
     const errors = trackErrors(page);
     await setup(page, 'pt');
     await page.goto(CLOUD);
@@ -145,7 +145,7 @@ test.describe('login e ruoli', () => {
     await page.getByTestId('filter-done').click();
     await expect(page.getByText('Modifica', { exact: true })).toHaveCount(1);
     await expect(page.getByText('Inizia', { exact: true })).toHaveCount(0);
-    await snap(page, info, 'pt-schede-ragazzo');
+    await snap(page, info, 'pt-schede-atleta');
     expect(errors).toEqual([]);
   });
 });
