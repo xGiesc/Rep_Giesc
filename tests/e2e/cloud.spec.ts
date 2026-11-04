@@ -63,9 +63,6 @@ async function setup(page: Page, role: Role, opts: { loggedIn?: boolean; expires
 }
 
 test.describe('login e ruoli', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.route('**/oss.exercisedb.dev/**', (r) => r.abort());
-  });
   test('senza accesso compare il login con la banda del logo', async ({ page }, info) => {
     const errors = trackErrors(page);
     await setup(page, 'client', { loggedIn: false });
