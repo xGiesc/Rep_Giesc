@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { PlanEditor } from './screens/PlanEditor';
 import { PlanView } from './screens/PlanView';
@@ -14,7 +15,9 @@ type Route =
   | { name: 'workout'; plan: Plan }
   | { name: 'view'; plan: Plan };
 
-export type ExtraTab = { key: string; label: string; render: () => React.ReactNode };
+export type ExtraTab = { key: string; label: string; icon?: IconName; render: () => React.ReactNode };
+
+type IconName = 'plans' | 'history' | 'clients' | 'account';
 
 /**
  * Schermate principali (schede, allenamento, storico) per un insieme di dati:
@@ -113,20 +116,52 @@ export function Home({
         )}
       </View>
       <View style={styles.tabBar}>
-        <TabButton label="Schede" active={tab === 'plans'} onPress={() => setTab('plans')} />
-        <TabButton label="Storico" active={tab === 'history'} onPress={() => setTab('history')} />
+        <TabButton label="Schede" icon="plans" active={tab === 'plans'} onPress={() => setTab('plans')} />
+        <TabButton label="Storico" icon="history" active={tab === 'history'} onPress={() => setTab('history')} />
         {extraTabs.map((t) => (
-          <TabButton key={t.key} label={t.label} active={tab === t.key} onPress={() => setTab(t.key)} />
+          <TabButton key={t.key} label={t.label} icon={t.icon ?? 'account'} active={tab === t.key} onPress={() => setTab(t.key)} />
         ))}
       </View>
     </View>
   );
 }
 
-function TabButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function Icon({ name, color }: { name: IconName; color: string }) {
+  const p = { stroke: color, strokeWidth: 2, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  return (
+    <Svg width={24} height={24} viewBox="0 0 24 24">
+      {name === 'plans' ? (
+        <>
+          <Rect x="4" y="3" width="16" height="18" rx="3" {...p} />
+          <Path d="M8 8h8M8 12h8M8 16h5" {...p} />
+        </>
+      ) : name === 'history' ? (
+        <>
+          <Circle cx="12" cy="12" r="9" {...p} />
+          <Path d="M12 7v5l3 2" {...p} />
+        </>
+      ) : name === 'clients' ? (
+        <>
+          <Circle cx="9" cy="8" r="3.5" {...p} />
+          <Path d="M2.5 20c.5-4 3.2-6 6.5-6s6 2 6.5 6" {...p} />
+          <Path d="M16 4.6a3.5 3.5 0 010 6.8M18.5 14.4c1.8.7 2.8 2.7 3 5.6" {...p} />
+        </>
+      ) : (
+        <>
+          <Circle cx="12" cy="8" r="4" {...p} />
+          <Path d="M4 21c.7-4.5 4-7 8-7s7.3 2.5 8 7" {...p} />
+        </>
+      )}
+    </Svg>
+  );
+}
+
+function TabButton({ label, icon, active, onPress }: { label: string; icon: IconName; active: boolean; onPress: () => void }) {
+  const color = active ? colors.text : '#a0a0a8';
   return (
     <Pressable onPress={onPress} style={styles.tab}>
-      <Text style={[styles.tabText, active && { color: colors.accent }]}>{label}</Text>
+      <Icon name={icon} color={color} />
+      <Text style={[styles.tabText, { color }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -134,10 +169,17 @@ function TabButton({ label, active, onPress }: { label: string; active: boolean;
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
     backgroundColor: colors.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 6,
+    paddingBottom: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 10,
   },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: spacing.md },
-  tabText: { color: colors.muted, fontWeight: '700', fontSize: 15 },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm, gap: 3 },
+  tabText: { fontWeight: '700', fontSize: 11 },
 });

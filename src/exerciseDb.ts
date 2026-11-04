@@ -1,40 +1,23 @@
-import raw from './data/exercises.json';
+import { CATALOG, CatalogExercise } from './catalog';
 
 /**
- * Database esercizi: "Free Exercise DB" (github.com/yuhonas/free-exercise-db),
- * pubblico dominio. Dati inclusi nell'app (funzionano anche offline); le
- * immagini vengono caricate da GitHub.
+ * Elenco esercizi dell'app: nomi, muscoli e istruzioni in italiano, ognuno con
+ * la sua animazione (vedi catalog.ts). Funziona anche offline.
  */
-export type DbExercise = {
-  id: string;
-  name: string;
-  equipment: string | null;
-  level: string | null;
-  category: string | null;
-  primaryMuscles: string[];
-  secondaryMuscles: string[];
-  instructions: string[];
-  images: number;
-};
+export type DbExercise = CatalogExercise;
 
-export const EXERCISES = raw as DbExercise[];
+export const EXERCISES: DbExercise[] = CATALOG;
 
 const BY_ID = new Map(EXERCISES.map((e) => [e.id, e]));
-const BY_NAME = new Map(EXERCISES.map((e) => [e.name.toLowerCase(), e]));
+const norm = (t: string) => t.trim().toLowerCase();
+const BY_NAME = new Map(EXERCISES.map((e) => [norm(e.name), e]));
 
 /** Trova per id; se manca prova con il nome esatto (schede create a mano). */
 export function findExercise(dbId?: string, name?: string) {
   if (dbId && BY_ID.has(dbId)) return BY_ID.get(dbId);
-  if (name) return BY_NAME.get(name.trim().toLowerCase());
+  if (name) return BY_NAME.get(norm(name));
   return undefined;
 }
-
-const IMAGE_BASE =
-  'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises';
-
-export const imageUrl = (id: string, index: number) =>
-  `${IMAGE_BASE}/${encodeURIComponent(id)}/${index}.jpg`;
-
 
 // ---- Etichette in italiano -------------------------------------------------
 
@@ -63,7 +46,7 @@ export const EQUIPMENT_IT: Record<string, string> = {
   dumbbell: 'Manubri',
   'body only': 'Corpo libero',
   cable: 'Cavi',
-  machine: 'Macchina',
+  machine: 'Macchina / multipower',
   kettlebells: 'Kettlebell',
   bands: 'Elastici',
   'medicine ball': 'Palla medica',
@@ -92,7 +75,6 @@ export const EQUIPMENT_FILTERS = [
   'cable',
   'machine',
   'kettlebells',
-  'bands',
 ];
 
 export function searchExercises(
@@ -105,7 +87,7 @@ export function searchExercises(
     if (muscle && !e.primaryMuscles.includes(muscle)) return false;
     if (equipment && e.equipment !== equipment) return false;
     if (words.length === 0) return true;
-    const hay = e.name.toLowerCase();
+    const hay = norm(e.name);
     return words.every((w) => hay.includes(w));
   });
 }

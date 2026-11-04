@@ -4,9 +4,9 @@ App per gestire gli allenamenti in palestra (stile Coach Plus): crei le tue sche
 
 ## Funzioni
 
-- **Schede**: crea, modifica ed elimina schede; gli esercizi si scelgono da un elenco di 876 esercizi (ricerca per nome, filtro per muscolo e attrezzo) oppure con un nome personalizzato. Per ogni esercizio imposti serie, ripetizioni e **tempo di recupero**
+- **Schede**: gli esercizi si scelgono da un catalogo di circa 130 esercizi (ricerca per nome, filtro per muscolo e attrezzo) oppure con un nome personalizzato. Per ogni esercizio imposti serie, ripetizioni e **tempo di recupero**
 - **Allenamento**: per ogni serie inserisci kg e ripetizioni e spunti il completamento; i kg vengono precompilati con l'ultimo carico usato. Alla spunta parte il **timer di recupero** a video (−15 / +15 secondi, Salta); a fine tempo suona e vibra (dove il dispositivo lo permette). Lo schermo resta acceso durante l'allenamento
-- **Scheda esercizio** ("Video e info"): per i movimenti principali (circa 115 esercizi su 876) un omino animato disegnato dall’app, con i muscoli in rosso; per gli altri le foto di partenza e arrivo. Sempre muscoli coinvolti e istruzioni (animazioni schematiche, non video reali)
+- **Scheda esercizio** ("Video e info"): un omino animato disegnato dall’app mostra il movimento con i muscoli che lavorano in nero; poi muscoli coinvolti e istruzioni, tutto in italiano. Sono animazioni schematiche, non video reali
 - **Storico**: allenamenti passati con serie e volume totale (kg × ripetizioni)
 - Dati salvati sul dispositivo (su web nel browser), nessun account necessario
 
@@ -24,11 +24,9 @@ Attivazione (una volta sola):
 
 Senza queste chiavi l'app funziona solo sul dispositivo, senza login.
 
-## Dati degli esercizi
+## Catalogo esercizi
 
-I nomi, i muscoli, le istruzioni e le immagini vengono da **[Free Exercise DB](https://github.com/yuhonas/free-exercise-db)** (pubblico dominio, licenza Unlicense). L'elenco è incluso nell'app (`src/data/exercises.json`), quindi la ricerca funziona anche offline; le immagini vengono caricate da GitHub. Nomi e istruzioni sono in inglese.
-
-Per aggiornare l'elenco all'ultima versione del database: `node scripts/update-exercises.mjs`.
+I nomi, i muscoli e le istruzioni sono scritti per questa app, in italiano, in `src/catalog.ts` (ogni esercizio ha il suo movimento animato in `src/anim/`). Per aggiungere un esercizio basta una riga in `ROWS`; per un movimento nuovo si aggiunge anche la posa in `src/anim/patterns.ts`.
 
 ## Provala online (nessuna installazione)
 
@@ -70,7 +68,8 @@ src/types.ts                 tipi (Plan, Exercise, Session)
 src/storage.ts               salvataggio persistente
 src/cloud.ts                 dati su Supabase (schede, storico, profili)
 src/Home.tsx                 schermate principali riusate da atleta e PT
-src/exerciseDb.ts            ricerca esercizi, immagini, etichette in italiano
+src/catalog.ts               catalogo esercizi in italiano
+src/exerciseDb.ts            ricerca esercizi, etichette
 src/anim/                    motore delle animazioni SVG, movimenti e abbinamento agli esercizi
 src/useRestTimer.ts          timer di recupero
 src/feedback.ts              bip, vibrazione, schermo acceso

@@ -25,24 +25,24 @@ const SAMPLE_PLANS: Plan[] = [
     exercises: [
       {
         id: 'e1',
-        name: 'Barbell Bench Press - Medium Grip',
-        dbId: 'Barbell_Bench_Press_-_Medium_Grip',
+        name: 'Panca piana con bilanciere',
+        dbId: 'panca-piana-bilanciere',
         sets: 4,
         reps: 8,
         rest: 120,
       },
       {
         id: 'e2',
-        name: 'Standing Military Press',
-        dbId: 'Standing_Military_Press',
+        name: 'Military press con bilanciere',
+        dbId: 'military-press-bilanciere',
         sets: 3,
         reps: 10,
         rest: 90,
       },
       {
         id: 'e3',
-        name: 'Cable Crossover',
-        dbId: 'Cable_Crossover',
+        name: 'Croci ai cavi su panca',
+        dbId: 'croci-cavi-panca',
         sets: 3,
         reps: 12,
         rest: 60,
@@ -123,9 +123,9 @@ function CloudApp({ userId }: { userId: string }) {
       canEdit={isPt}
       extraTabs={[
         ...(isPt
-          ? [{ key: 'clients', label: 'Ragazzi', render: () => <ClientsScreen code={profile.invite_code} onOpen={setClient} /> }]
+          ? [{ key: 'clients', label: 'Ragazzi', icon: 'clients' as const, render: () => <ClientsScreen code={profile.invite_code} onOpen={setClient} /> }]
           : []),
-        { key: 'account', label: 'Account', render: () => <AccountScreen profile={profile} onChanged={reload} /> },
+        { key: 'account', label: 'Account', icon: 'account' as const, render: () => <AccountScreen profile={profile} onChanged={reload} /> },
       ]}
     />
   );
@@ -152,7 +152,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.root}>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <View style={styles.container}>{cloudEnabled ? <CloudGate /> : <LocalApp />}</View>
       </SafeAreaView>
     </SafeAreaProvider>

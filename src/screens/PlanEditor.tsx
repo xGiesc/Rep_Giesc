@@ -4,6 +4,7 @@ import { Button, Card, Chip, Field, Header } from '../components';
 import { fmtRest } from '../format';
 import { colors, spacing } from '../theme';
 import { DEFAULT_REST, Exercise, Plan, newId, restOf } from '../types';
+import { EXERCISES } from '../exerciseDb';
 import { ExercisePicker } from './ExercisePicker';
 
 const toInt = (s: string, fallback: number, min = 1) => {
@@ -146,18 +147,18 @@ export function PlanEditor({
 
           <Pressable onPress={() => setPicking(true)} style={styles.pick}>
             <Text style={exName ? styles.pickValue : styles.pickPlaceholder}>
-              {exName || 'Scegli dall’elenco (876 esercizi)…'}
+              {exName || `Scegli dall’elenco (${EXERCISES.length} esercizi)…`}
             </Text>
             <Text style={styles.pickArrow}>›</Text>
           </Pressable>
           {exName && exDbId ? (
             <Text style={styles.muted}>
-              Con immagini e istruzioni nella scheda dell’esercizio.
+              Con animazione e istruzioni nella scheda dell’esercizio.
             </Text>
           ) : null}
           {exName && !exDbId ? (
             <Text style={styles.muted}>
-              Nome personalizzato: nessuna immagine disponibile.
+              Nome personalizzato: l’animazione compare solo se il nome è riconosciuto.
             </Text>
           ) : null}
 

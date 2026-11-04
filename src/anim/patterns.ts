@@ -457,4 +457,183 @@ export const PATTERNS: Record<string, Pattern> = {
     b: standing({ abs: [160, 88] }, { elbowDir: [0.6, -1] }),
     scene: sceneOf([], held(11)),
   },
+
+  leg_extension: {
+    id: 'leg_extension',
+    label: 'Leg extension',
+    a: {
+      hip: [118, 162],
+      torso: -98,
+      ankle: [166, 204],
+      kneeDir: [0.2, -1],
+      hand: { abs: [140, 168] },
+    },
+    b: {
+      hip: [118, 162],
+      torso: -98,
+      ankle: [203, 150],
+      kneeDir: [0.2, -1],
+      hand: { abs: [140, 168] },
+    },
+    scene: (j: Joints): Scene => ({
+      back: [
+        floor(),
+        rect(88, 170, 66, 9, COLORS.bench, 4),
+        rect(86, 100, 9, 74, COLORS.bench, 4),
+        rect(116, 179, 8, GROUND - 179, COLORS.bench, 2),
+      ],
+      front: [seg([j.ankle[0] - 6, j.ankle[1] - 4], [j.ankle[0] - 2, j.ankle[1] + 2], 10, COLORS.plate)],
+    }),
+  },
+
+  leg_curl: {
+    id: 'leg_curl',
+    label: 'Leg curl',
+    a: {
+      hip: [118, 162],
+      torso: -98,
+      ankle: [203, 150],
+      kneeDir: [0.2, -1],
+      hand: { abs: [140, 168] },
+    },
+    b: {
+      hip: [118, 162],
+      torso: -98,
+      ankle: [166, 204],
+      kneeDir: [0.2, -1],
+      hand: { abs: [140, 168] },
+    },
+    scene: (j: Joints): Scene => ({
+      back: [
+        floor(),
+        rect(88, 170, 66, 9, COLORS.bench, 4),
+        rect(86, 100, 9, 74, COLORS.bench, 4),
+        rect(116, 179, 8, GROUND - 179, COLORS.bench, 2),
+      ],
+      front: [seg([j.ankle[0] - 4, j.ankle[1] - 2], [j.ankle[0] + 2, j.ankle[1] + 4], 10, COLORS.plate)],
+    }),
+  },
+
+  leg_press: {
+    id: 'leg_press',
+    label: 'Leg press',
+    a: {
+      hip: [96, 176],
+      torso: -140,
+      ankle: [134, 148],
+      kneeDir: [0.3, -1],
+      hand: { abs: [112, 182] },
+    },
+    b: {
+      hip: [96, 176],
+      torso: -140,
+      ankle: [166, 128],
+      kneeDir: [0.3, -1],
+      hand: { abs: [112, 182] },
+    },
+    scene: (j: Joints): Scene => ({
+      back: [
+        floor(),
+        seg([60, 200], [96, 156], 10, COLORS.bench),
+        seg([60, 200], [190, 200], 5, COLORS.floor),
+        seg([60, 200], [60, 212], 5, COLORS.floor),
+      ],
+      front: [
+        seg([j.ankle[0] + 7, j.ankle[1] - 22], [j.ankle[0] + 7, j.ankle[1] + 20], 7, COLORS.plate),
+      ],
+    }),
+  },
+
+  dips: {
+    id: 'dips',
+    label: 'Dip alle parallele',
+    a: {
+      hip: [146, 112],
+      torso: -92,
+      ankle: [128, 150],
+      kneeDir: [0.3, 1],
+      hand: { abs: [152, 112] },
+      elbowDir: [-1, 0.2],
+    },
+    b: {
+      hip: [140, 144],
+      torso: -75,
+      ankle: [120, 184],
+      kneeDir: [0.3, 1],
+      hand: { abs: [152, 112] },
+      elbowDir: [-1, 0.2],
+    },
+    scene: sceneOf(
+      [
+        rect(140, 106, 44, 5, COLORS.metal, 2.5),
+        rect(176, 106, 5, GROUND - 106, COLORS.floor, 2),
+        rect(110, 106, 5, GROUND - 106, COLORS.floor, 2),
+      ],
+      () => [],
+    ),
+  },
+
+  chest_fly: {
+    id: 'chest_fly',
+    label: 'Croci su panca',
+    a: supine({ abs: [58, 158] }, { elbowDir: [0, 1] }),
+    b: supine({ abs: [100, 98] }, { elbowDir: [0, 1] }),
+    scene: sceneOf(flatBench(), held(9)),
+  },
+
+  triceps_overhead: {
+    id: 'triceps_overhead',
+    label: 'Estensioni sopra la testa',
+    a: standing({ fk: [-92, 100] }),
+    b: standing({ fk: [-92, -92] }),
+    scene: sceneOf([], held(9)),
+  },
+
+  back_extension: {
+    id: 'back_extension',
+    label: 'Hyperextension',
+    a: {
+      hip: [150, 138],
+      torso: 62,
+      ankle: [92, 190],
+      kneeDir: [0, -1],
+      hand: { sh: [4, 40] },
+    },
+    b: {
+      hip: [150, 138],
+      torso: -12,
+      ankle: [92, 190],
+      kneeDir: [0, -1],
+      hand: { sh: [30, 14] },
+    },
+    scene: sceneOf(
+      [
+        rect(126, 146, 34, 9, COLORS.bench, 4),
+        rect(138, 155, 8, GROUND - 155, COLORS.bench, 2),
+        seg([86, 196], [98, 186], 9, COLORS.bench),
+        rect(80, 196, 26, GROUND - 196, COLORS.bench, 2),
+      ],
+      () => [],
+    ),
+  },
+
+  leg_raise: {
+    id: 'leg_raise',
+    label: 'Sollevamento gambe',
+    a: {
+      hip: [120, 203],
+      torso: 180,
+      ankle: [204, 203],
+      kneeDir: [0, -1],
+      hand: { sh: [-14, 8] },
+    },
+    b: {
+      hip: [120, 203],
+      torso: 180,
+      ankle: [120, 116],
+      kneeDir: [1, 0],
+      hand: { sh: [-14, 8] },
+    },
+    scene: sceneOf([], () => []),
+  },
 };

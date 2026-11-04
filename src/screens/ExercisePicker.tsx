@@ -39,7 +39,7 @@ export function ExercisePicker({
         <Field
           value={query}
           onChangeText={setQuery}
-          placeholder="Cerca (es. bench press, squat, curl…)"
+          placeholder="Cerca (es. panca, squat, curl…)"
           autoCorrect={false}
           autoCapitalize="none"
         />
@@ -93,14 +93,13 @@ export function ExercisePicker({
               style={[styles.row, styles.customRow]}
             >
               <Text style={styles.name}>Usa “{custom}” come nome personalizzato</Text>
-              <Text style={styles.sub}>Senza immagini né istruzioni</Text>
+              <Text style={styles.sub}>Senza istruzioni (l’animazione compare se il nome è riconosciuto)</Text>
             </Pressable>
           ) : undefined
         }
         ListEmptyComponent={
           <Text style={styles.empty}>
-            Nessun esercizio trovato. Prova con un altro nome (i nomi sono in
-            inglese) o togli i filtri.
+            Nessun esercizio trovato. Prova con un altro nome o togli i filtri.
           </Text>
         }
         renderItem={({ item }) => (

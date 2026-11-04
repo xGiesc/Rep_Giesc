@@ -1,29 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Card, Chip, Header } from '../components';
 import { fmtRest } from '../format';
-import {
-  LEVEL_IT,
-  equipmentLabel,
-  findExercise,
-  imageUrl,
-  muscleLabel,
-} from '../exerciseDb';
-import { colors, spacing } from '../theme';
+import { LEVEL_IT, equipmentLabel, findExercise, muscleLabel } from '../exerciseDb';
+import { colors, radius, shadow, spacing } from '../theme';
 import { ExerciseAnimation } from '../anim/ExerciseAnimation';
 import { animationFor, animationForName } from '../anim/mapping';
 
-/**
- * Scheda dell'esercizio: immagini che si alternano (posizione di partenza e di
- * arrivo), muscoli e istruzioni. Se esiste un'animazione disegnata dall'app
- * per quel movimento, viene mostrata al posto delle foto.
- */
+/** Scheda dell'esercizio: animazione, muscoli e istruzioni. */
 export function ExerciseDetail({
   name,
   dbId,
@@ -44,54 +28,33 @@ export function ExerciseDetail({
   const anim = ex ? animationFor(ex) : custom;
   const primary = ex ? ex.primaryMuscles : custom?.primary ?? [];
   const secondary = ex ? ex.secondaryMuscles : custom?.secondary ?? [];
-  const [frame, setFrame] = useState(0);
-  const [imgFailed, setImgFailed] = useState(false);
-
-  const frames = ex?.images ?? 0;
-  useEffect(() => {
-    if (frames < 2) return;
-    const id = setInterval(() => setFrame((f) => (f + 1) % frames), 900);
-    return () => clearInterval(id);
-  }, [frames]);
 
   return (
     <View style={{ flex: 1 }}>
       <Header title={ex?.name ?? name} onBack={onClose} />
       <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.plan}>
-          In scheda: {sets} serie × {reps} ripetizioni · recupero {fmtRest(rest)}
-        </Text>
+        <View style={styles.planPill}>
+          <Text style={styles.planPillText}>
+            {sets} serie × {reps} rip. · recupero {fmtRest(rest)}
+          </Text>
+        </View>
 
         {anim ? (
-          <View style={[styles.media, { paddingBottom: 0 }]}>
+          <View style={styles.media}>
             <ExerciseAnimation
               pattern={anim.pattern}
               impl={anim.impl}
               primary={primary}
               secondary={secondary}
             />
-            <Text style={[styles.mediaHint, { marginVertical: spacing.sm }]}>
-              Animazione schematica · in nero i muscoli che lavorano
-            </Text>
-          </View>
-        ) : ex && frames > 0 && !imgFailed ? (
-          <View style={styles.media}>
-            <Image
-              source={{ uri: imageUrl(ex.id, frame) }}
-              style={styles.image}
-              resizeMode="contain"
-              onError={() => setImgFailed(true)}
-            />
             <Text style={styles.mediaHint}>
-              Posizione {frame + 1} di {frames}
+              Animazione schematica · in nero i muscoli che lavorano
             </Text>
           </View>
         ) : (
           <View style={[styles.media, styles.noMedia]}>
             <Text style={styles.muted}>
-              {ex
-                ? 'Immagini non disponibili (serve la connessione).'
-                : 'Esercizio personalizzato: nessuna immagine disponibile.'}
+              Esercizio personalizzato: nessuna animazione disponibile.
             </Text>
           </View>
         )}
@@ -109,26 +72,24 @@ export function ExerciseDetail({
                 ))}
               </View>
               <Text style={styles.muted}>
-                In bianco i muscoli principali, in grigio i secondari.
+                In nero i muscoli principali, in grigio i secondari.
               </Text>
               <Text style={styles.muted}>
-                Attrezzo: {equipmentLabel(ex.equipment)}
-                {ex.level ? ` · Livello: ${LEVEL_IT[ex.level] ?? ex.level}` : ''}
+                Attrezzo: {equipmentLabel(ex.equipment)} · Livello: {LEVEL_IT[ex.level] ?? ex.level}
               </Text>
             </Card>
 
-            {ex.instructions.length > 0 ? (
-              <Card style={{ gap: spacing.sm }}>
-                <Text style={styles.section}>Come si esegue</Text>
-                {ex.instructions.map((step, i) => (
-                  <View key={i} style={styles.step}>
+            <Card style={{ gap: spacing.md }}>
+              <Text style={styles.section}>Come si esegue</Text>
+              {ex.instructions.map((step, i) => (
+                <View key={i} style={styles.step}>
+                  <View style={styles.stepBadge}>
                     <Text style={styles.stepNum}>{i + 1}</Text>
-                    <Text style={styles.stepText}>{step}</Text>
                   </View>
-                ))}
-                <Text style={styles.muted}>Istruzioni in inglese.</Text>
-              </Card>
-            ) : null}
+                  <Text style={styles.stepText}>{step}</Text>
+                </View>
+              ))}
+            </Card>
           </>
         ) : null}
       </ScrollView>
@@ -138,28 +99,40 @@ export function ExerciseDetail({
 
 const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.md },
-  plan: { color: colors.accent, fontSize: 14, fontWeight: '700' },
+  planPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.accent,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+  },
+  planPillText: { color: colors.accentText, fontSize: 13, fontWeight: '700' },
   media: {
-    backgroundColor: colors.cardAlt,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
     overflow: 'hidden',
-    alignItems: 'center',
-    paddingBottom: spacing.sm,
+    ...shadow,
   },
-  noMedia: { padding: spacing.xl, paddingBottom: spacing.xl },
-  image: { width: '100%', height: 260 },
-  mediaHint: { color: colors.muted, fontSize: 12, marginTop: spacing.xs },
-  section: { color: colors.text, fontSize: 18, fontWeight: '700' },
+  noMedia: { padding: spacing.xl },
+  mediaHint: {
+    color: colors.muted,
+    fontSize: 12,
+    textAlign: 'center',
+    marginVertical: spacing.sm,
+  },
+  section: { color: colors.text, fontSize: 18, fontWeight: '800' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  muted: { color: colors.muted, fontSize: 12, textAlign: 'center' },
-  step: { flexDirection: 'row', gap: spacing.md },
-  stepNum: {
-    color: colors.accent,
-    fontWeight: '800',
-    width: 18,
-    fontSize: 14,
+  muted: { color: colors.muted, fontSize: 12 },
+  step: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
+  stepBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
   },
-  stepText: { color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 },
+  stepNum: { color: colors.accentText, fontWeight: '800', fontSize: 12 },
+  stepText: { color: colors.text, fontSize: 15, lineHeight: 21, flex: 1 },
 });

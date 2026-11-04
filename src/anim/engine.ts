@@ -28,13 +28,13 @@ export const LEN = {
 };
 
 export const COLORS = {
-  bg: '#f3f4f7',
-  floor: '#d5d9e0',
-  body: '#d3d7de',
-  bodyFar: '#a9afba',
-  torso: '#bcc2cc',
+  bg: '#f6f6f8',
+  floor: '#dcdce2',
+  body: '#cfd1d8',
+  bodyFar: '#a3a6b0',
+  torso: '#b8bbc4',
   head: '#dadde3',
-  outline: '#8a91a0',
+  outline: '#4d515c',
   red: '#111111',
   metal: '#5a6070',
   plate: '#30343f',

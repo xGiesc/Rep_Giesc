@@ -61,7 +61,7 @@ export function PlansScreen({
                   label="Inizia"
                   onPress={() => onStart(plan)}
                   disabled={plan.exercises.length === 0}
-                  style={{ flex: 1 }}
+                  style={{ flex: 1.4 }}
                 />
               ) : null}
               {onOpen ? (
@@ -91,7 +91,7 @@ export function PlansScreen({
 
 const styles = StyleSheet.create({
   list: { padding: spacing.lg, gap: spacing.md },
-  planName: { color: colors.text, fontSize: 20, fontWeight: '700' },
+  planName: { color: colors.text, fontSize: 22, fontWeight: '900', letterSpacing: -0.3 },
   byPt: { color: colors.accent, fontSize: 12, fontWeight: '700' },
   muted: { color: colors.muted, fontSize: 13 },
   row: { flexDirection: 'row', gap: spacing.sm },

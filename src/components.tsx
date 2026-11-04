@@ -10,7 +10,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { fmtTime } from './format';
-import { colors, spacing } from './theme';
+import { colors, radius, shadow, spacing } from './theme';
 
 export function Button({
   label,
@@ -30,7 +30,7 @@ export function Button({
       ? colors.accent
       : variant === 'danger'
         ? colors.danger
-        : 'transparent';
+        : colors.card;
   return (
     <Pressable
       onPress={onPress}
@@ -39,7 +39,7 @@ export function Button({
         styles.button,
         {
           backgroundColor: bg,
-          borderColor: variant === 'ghost' ? colors.border : bg,
+          borderColor: variant === 'ghost' ? colors.text : bg,
           opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
         },
         style,
@@ -150,7 +150,7 @@ export function RestTimerBar({
     <View
       style={[
         styles.timerBar,
-        finished && { borderColor: colors.success },
+        
       ]}
     >
       <View style={styles.timerTrack}>
@@ -159,7 +159,7 @@ export function RestTimerBar({
             styles.timerFill,
             {
               width: `${Math.round((finished ? 1 : progress) * 100)}%`,
-              backgroundColor: finished ? colors.success : colors.accent,
+              backgroundColor: '#ffffff',
             },
           ]}
         />
@@ -170,7 +170,7 @@ export function RestTimerBar({
             {finished ? 'Recupero finito!' : `Recupero · ${label}`}
           </Text>
           <Text
-            style={[styles.timerTime, finished && { color: colors.success }]}
+            style={styles.timerTime}
           >
             {finished ? 'Vai con la prossima serie' : fmtTime(remaining)}
           </Text>
@@ -186,7 +186,7 @@ export function RestTimerBar({
           </>
         )}
         <Pressable onPress={onSkip} style={[styles.timerBtn, styles.timerSkip]}>
-          <Text style={styles.timerBtnText}>{finished ? 'OK' : 'Salta'}</Text>
+          <Text style={[styles.timerBtnText, { color: '#000' }]}>{finished ? 'OK' : 'Salta'}</Text>
         </Pressable>
       </View>
     </View>
@@ -195,52 +195,51 @@ export function RestTimerBar({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: spacing.lg,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
     alignItems: 'center',
   },
-  buttonText: { color: colors.accentText, fontWeight: '700', fontSize: 15 },
+  buttonText: { color: colors.accentText, fontWeight: '800', fontSize: 15, letterSpacing: 0.2 },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    ...shadow,
   },
   label: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   input: {
     backgroundColor: colors.cardAlt,
     color: colors.text,
-    borderRadius: 10,
+    borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: 10,
+    paddingVertical: 12,
     fontSize: 16,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
     minWidth: 0,
   },
-  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: 4 },
+  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm, gap: 6 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  title: { color: colors.text, fontSize: 28, fontWeight: '800' },
+  title: { color: colors.text, fontSize: 30, fontWeight: '900', letterSpacing: -0.5, flexShrink: 1 },
   back: { color: colors.accent, fontSize: 16, fontWeight: '600' },
   chip: {
-    paddingVertical: 7,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 999,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
-    backgroundColor: colors.cardAlt,
+    backgroundColor: colors.card,
   },
   chipText: { color: colors.text, fontSize: 13, fontWeight: '600' },
   timerBar: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
+    backgroundColor: colors.accent,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.accent,
     padding: spacing.md,
@@ -254,21 +253,20 @@ const styles = StyleSheet.create({
   timerTrack: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.cardAlt,
+    backgroundColor: '#3a3a40',
     overflow: 'hidden',
   },
   timerFill: { height: 4, borderRadius: 2 },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  timerLabel: { color: colors.muted, fontSize: 12, fontWeight: '600' },
-  timerTime: { color: colors.text, fontSize: 28, fontWeight: '800' },
+  timerLabel: { color: '#b5b5bd', fontSize: 12, fontWeight: '600' },
+  timerTime: { color: '#ffffff', fontSize: 30, fontWeight: '900' },
   timerBtn: {
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 10,
-    backgroundColor: colors.cardAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: 12,
+    backgroundColor: '#2a2a30',
+    borderWidth: 0,
   },
-  timerSkip: { backgroundColor: colors.accent, borderColor: colors.accent },
-  timerBtnText: { color: colors.text, fontWeight: '700', fontSize: 14 },
+  timerSkip: { backgroundColor: '#ffffff' },
+  timerBtnText: { color: '#ffffff', fontWeight: '700', fontSize: 14 },
 });
