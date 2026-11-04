@@ -94,6 +94,10 @@ test.describe('app locale', () => {
     await page.getByText('Quadricipiti', { exact: true }).click();
     await page.getByText('Squat con bilanciere', { exact: true }).first().click();
     await expect(page.getByText('Con animazione e istruzioni nella scheda dell’esercizio.')).toBeVisible();
+    // subito il modulo: focus su Serie e pulsante Aggiungi già visibile, senza scorrere
+    await expect(page.getByText('Aggiungi alla scheda')).toBeInViewport();
+    await expect(page.getByText('Serie', { exact: true }).locator('xpath=following::input[1]')).toBeFocused();
+    await snap(page, info, '06b-aggiungi-esercizio');
     await page
       .getByText('Recupero tra le serie (secondi, 0 = nessun timer)')
       .locator('xpath=following::input[1]')

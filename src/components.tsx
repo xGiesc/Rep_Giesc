@@ -68,12 +68,13 @@ export function Card({
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
-export function Field(props: TextInputProps & { label?: string }) {
-  const { label, style, ...rest } = props;
+export function Field(props: TextInputProps & { label?: string; inputRef?: React.Ref<any> }) {
+  const { label, style, inputRef, ...rest } = props;
   return (
     <View style={{ gap: spacing.xs }}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <TextInput
+        ref={inputRef}
         placeholderTextColor={colors.muted}
         {...rest}
         style={[styles.input, style]}

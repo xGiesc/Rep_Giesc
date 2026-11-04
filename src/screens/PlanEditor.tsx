@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Chip, Field, Header } from '../components';
 import { expiryInfo, inWeeks } from '../expiry';
@@ -36,6 +36,11 @@ export function PlanEditor({
 
   // modulo "esercizio" (nuovo oppure in modifica)
   const [picking, setPicking] = useState(false);
+  const [formOpen, setFormOpen] = useState(false); // schermata serie/ripetizioni/recupero
+  const scrollRef = useRef<any>(null);
+  const [justAdded, setJustAdded] = useState(0);
+  const repsRef = useRef<any>(null);
+  const restRef = useRef<any>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [exName, setExName] = useState('');
   const [exDbId, setExDbId] = useState<string | undefined>(undefined);
@@ -44,6 +49,7 @@ export function PlanEditor({
   const [exRest, setExRest] = useState(String(DEFAULT_REST));
 
   const resetForm = () => {
+    setFormOpen(false);
     setEditingId(null);
     setExName('');
     setExDbId(undefined);
@@ -53,6 +59,7 @@ export function PlanEditor({
   };
 
   const loadForEdit = (e: Exercise) => {
+    setFormOpen(true);
     setEditingId(e.id);
     setExName(e.name);
     setExDbId(e.dbId);
@@ -77,7 +84,12 @@ export function PlanEditor({
         : [...prev, { id: newId(), ...data }],
     );
     resetForm();
+    setJustAdded((n) => n + 1);
   };
+
+  useEffect(() => {
+    if (justAdded > 0) setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+  }, [justAdded]);
 
   const removeExercise = (id: string) => {
     setExercises((prev) => prev.filter((e) => e.id !== id));
@@ -101,15 +113,97 @@ export function PlanEditor({
           setExName(pickedName);
           setExDbId(dbId);
           setPicking(false);
+          setFormOpen(true);
         }}
       />
+    );
+  }
+
+  if (formOpen) {
+    return (
+      <View style={{ flex: 1 }}>
+        <Header title={editingId ? 'Modifica esercizio' : 'Aggiungi esercizio'} onBack={resetForm} />
+        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          <Pressable onPress={() => setPicking(true)} style={styles.pick}>
+            <Text style={exName ? styles.pickValue : styles.pickPlaceholder}>
+              {exName || 'Scegli un esercizio…'}
+            </Text>
+            <Text style={styles.pickArrow}>Cambia</Text>
+          </Pressable>
+          {exName && exDbId ? (
+            <Text style={styles.muted}>Con animazione e istruzioni nella scheda dell’esercizio.</Text>
+          ) : null}
+          {exName && !exDbId ? (
+            <Text style={styles.muted}>
+              Nome personalizzato: l’animazione compare solo se il nome è riconosciuto.
+            </Text>
+          ) : null}
+
+          <View style={styles.row}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Field
+                label="Serie"
+                value={exSets}
+                onChangeText={setExSets}
+                keyboardType="numeric"
+                autoFocus
+                selectTextOnFocus
+                returnKeyType="next"
+                onSubmitEditing={() => repsRef.current?.focus()}
+              />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Field
+                label="Ripetizioni"
+                value={exReps}
+                onChangeText={setExReps}
+                keyboardType="numeric"
+                inputRef={repsRef}
+                selectTextOnFocus
+                returnKeyType="next"
+                onSubmitEditing={() => restRef.current?.focus()}
+              />
+            </View>
+          </View>
+
+          <Field
+            label="Recupero tra le serie (secondi, 0 = nessun timer)"
+            value={exRest}
+            onChangeText={setExRest}
+            keyboardType="numeric"
+            inputRef={restRef}
+            selectTextOnFocus
+            returnKeyType="done"
+            onSubmitEditing={submitExercise}
+          />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.presets}>
+              {REST_PRESETS.map((s) => (
+                <Chip
+                  key={s}
+                  label={fmtRest(s)}
+                  active={exRest.trim() === String(s)}
+                  onPress={() => setExRest(String(s))}
+                />
+              ))}
+            </View>
+          </ScrollView>
+
+          <Button
+            label={editingId ? 'Aggiorna esercizio' : 'Aggiungi alla scheda'}
+            onPress={submitExercise}
+            disabled={!exName.trim()}
+          />
+          <Button label="Annulla" variant="ghost" onPress={resetForm} />
+        </ScrollView>
+      </View>
     );
   }
 
   return (
     <View style={{ flex: 1 }}>
       <Header title={plan ? 'Modifica scheda' : 'Nuova scheda'} onBack={onBack} />
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <Field
           label="Nome scheda"
           value={name}
@@ -168,76 +262,10 @@ export function PlanEditor({
           </Card>
         ))}
 
-        <Card style={{ gap: spacing.md }}>
-          <Text style={styles.formTitle}>
-            {editingId ? 'Modifica esercizio' : 'Nuovo esercizio'}
-          </Text>
-
-          <Pressable onPress={() => setPicking(true)} style={styles.pick}>
-            <Text style={exName ? styles.pickValue : styles.pickPlaceholder}>
-              {exName || `Scegli dall’elenco (${EXERCISES.length} esercizi)…`}
-            </Text>
-            <Text style={styles.pickArrow}>›</Text>
-          </Pressable>
-          {exName && exDbId ? (
-            <Text style={styles.muted}>
-              Con animazione e istruzioni nella scheda dell’esercizio.
-            </Text>
-          ) : null}
-          {exName && !exDbId ? (
-            <Text style={styles.muted}>
-              Nome personalizzato: l’animazione compare solo se il nome è riconosciuto.
-            </Text>
-          ) : null}
-
-          <View style={styles.row}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Field
-                label="Serie"
-                value={exSets}
-                onChangeText={setExSets}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Field
-                label="Ripetizioni"
-                value={exReps}
-                onChangeText={setExReps}
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
-
-          <Field
-            label="Recupero tra le serie (secondi, 0 = nessun timer)"
-            value={exRest}
-            onChangeText={setExRest}
-            keyboardType="numeric"
-          />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.presets}>
-              {REST_PRESETS.map((s) => (
-                <Chip
-                  key={s}
-                  label={fmtRest(s)}
-                  active={exRest.trim() === String(s)}
-                  onPress={() => setExRest(String(s))}
-                />
-              ))}
-            </View>
-          </ScrollView>
-
-          <Button
-            label={editingId ? 'Aggiorna esercizio' : 'Aggiungi alla scheda'}
-            variant={editingId ? 'primary' : 'ghost'}
-            onPress={submitExercise}
-            disabled={!exName.trim()}
-          />
-          {editingId ? (
-            <Button label="Annulla modifica" variant="ghost" onPress={resetForm} />
-          ) : null}
-        </Card>
+        <Pressable onPress={() => setPicking(true)} style={styles.pick}>
+          <Text style={styles.pickPlaceholder}>{`Scegli dall’elenco (${EXERCISES.length} esercizi)…`}</Text>
+          <Text style={styles.pickArrow}>＋</Text>
+        </Pressable>
 
         <Button label="Salva scheda" onPress={save} />
         {plan && onDelete ? (
