@@ -17,6 +17,7 @@ export function PlansScreen({
   onOpen,
   onBack,
   history = [],
+  coach = false,
 }: {
   plans: Plan[];
   onNew: () => void;
@@ -28,10 +29,14 @@ export function PlansScreen({
   onOpen?: (plan: Plan) => void;
   history?: Session[];
   onBack?: () => void;
+  /** Vista del coach su un atleta: parte da "Tutte". */
+  coach?: boolean;
 }) {
-  const [showDone, setShowDone] = useState(false);
+  type F = 'all' | 'todo' | 'done';
+  const [filter, setFilter] = useState<F>(coach ? 'all' : 'todo');
+  const showDone = filter === 'done';
   const cyc = cycleState(plans, history);
-  const shown = showDone ? cyc.done : cyc.todo;
+  const shown = filter === 'all' ? plans : showDone ? cyc.done : cyc.todo;
   return (
     <View style={{ flex: 1 }}>
       <Header
@@ -39,10 +44,14 @@ export function PlansScreen({
         onBack={onBack}
       />
       <View style={styles.toggle}>
-        {([['todo', `Da fare (${cyc.todo.length})`], ['done', `Eseguite (${cyc.done.length})`]] as const).map(([k, label]) => {
-          const on = (k === 'done') === showDone;
+        {([
+          ...(coach ? ([['all', `Tutte (${plans.length})`]] as const) : []),
+          ['todo', `Da fare (${cyc.todo.length})`],
+          ['done', `Eseguite (${cyc.done.length})`],
+        ] as ReadonlyArray<readonly [F, string]>).map(([k, label]) => {
+          const on = k === filter;
           return (
-            <Pressable key={k} testID={`filter-${k}`} onPress={() => setShowDone(k === 'done')} style={[styles.seg, on && styles.segOn]}>
+            <Pressable key={k} testID={`filter-${k}`} onPress={() => setFilter(k)} style={[styles.seg, on && styles.segOn]}>
               <Text style={[styles.segText, on && { color: colors.accentText }]}>{label}</Text>
             </Pressable>
           );

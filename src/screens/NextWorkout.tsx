@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Header } from '../components';
-import { ago } from '../expiry';
+import { ago, expiryInfo } from '../expiry';
 import { cycleState } from '../rotation';
 import { colors, spacing } from '../theme';
 import { Plan, Session } from '../types';
@@ -37,6 +37,12 @@ export function NextWorkout({
           <Card style={{ gap: spacing.md }}>
             <Text testID="next-workout" style={styles.kicker}>ALLENAMENTO PREVISTO</Text>
             <Text style={styles.name}>{next.name}</Text>
+            {(() => {
+              const ex = expiryInfo(next.expiresAt);
+              return ex ? (
+                <Text style={[styles.muted, ex.tone !== 'ok' && { color: colors.accentInk, fontWeight: '800' }]}>{ex.text}</Text>
+              ) : null;
+            })()}
             <View style={{ gap: 6 }}>
               {next.exercises.map((e) => (
                 <View key={e.id} style={styles.exRow}>

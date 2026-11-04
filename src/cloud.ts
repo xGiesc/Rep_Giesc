@@ -86,6 +86,28 @@ export async function fetchClientsOverview(): Promise<ClientOverview[]> {
   return rows.sort((a, b) => rank[a.status] - rank[b.status] || a.client.name.localeCompare(b.client.name));
 }
 
+import type { CoachData } from './notifications';
+
+/** Dati per le notifiche del coach: atleti, schede e allenamenti recenti. */
+export async function fetchCoachData(): Promise<{ profiles: Profile[]; data: CoachData }> {
+  const profiles = await fetchClients();
+  if (profiles.length === 0) return { profiles, data: { clients: [], plans: [], sessions: [] } };
+  const ids = profiles.map((c) => c.id);
+  const since = new Date(Date.now() - 60 * 86400000).toISOString();
+  const [pl, se] = await Promise.all([
+    db().from('plans').select('id,name,owner_id,expires_at,created_at,exercises').in('owner_id', ids),
+    db().from('sessions').select('id,user_id,plan_name,date').in('user_id', ids).gte('date', since).order('date', { ascending: false }).limit(1000),
+  ]);
+  return {
+    profiles,
+    data: {
+      clients: profiles.map((c) => ({ id: c.id, name: c.name, email: c.email })),
+      plans: (pl.data ?? []) as CoachData['plans'],
+      sessions: (se.data ?? []) as CoachData['sessions'],
+    },
+  };
+}
+
 export async function joinPt(code: string): Promise<boolean> {
   const { data, error } = await db().rpc('join_pt', { code });
   return !error && data === true;
@@ -121,6 +143,7 @@ export function useCloudPlans(ownerId: string, me: string) {
           exercises: r.exercises,
           byPt: r.created_by !== r.owner_id,
           expiresAt: r.expires_at ?? undefined,
+          createdAt: r.created_at ?? undefined,
         })),
       );
     }

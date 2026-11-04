@@ -37,6 +37,7 @@ export function Home({
   historyTitle,
   onBack,
   extraTabs = [],
+  coachMode = false,
 }: {
   plans: Plan[];
   onSavePlan: (p: Plan) => void;
@@ -49,8 +50,10 @@ export function Home({
   historyTitle?: string;
   onBack?: () => void;
   extraTabs?: ExtraTab[];
+  /** Il coach guarda un atleta: niente Home, si parte dall'elenco di tutte le schede. */
+  coachMode?: boolean;
 }) {
-  const [tab, setTab] = useState<string>('home');
+  const [tab, setTab] = useState<string>(coachMode ? 'plans' : 'home');
   const [route, setRoute] = useState<Route>({ name: 'tabs' });
   const goHome = () => setRoute({ name: 'tabs' });
 
@@ -119,6 +122,7 @@ export function Home({
             canStart={canTrain}
             history={history}
             canEdit={canEdit}
+            coach={coachMode}
             onOpen={(plan) => setRoute({ name: 'view', plan })}
             onBack={onBack}
             onNew={() => setRoute({ name: 'editor', plan: null })}
@@ -131,7 +135,7 @@ export function Home({
       </View>
       <TabBar
         tabs={[
-          { key: 'home', label: 'Home', icon: 'home' },
+          ...(coachMode ? [] : [{ key: 'home', label: 'Home', icon: 'home' as IconName }]),
           { key: 'plans', label: 'Schede', icon: 'plans' },
           { key: 'history', label: 'Storico', icon: 'history' },
           ...extraTabs.map((t) => ({ key: t.key, label: t.label, icon: t.icon ?? ('account' as IconName) })),

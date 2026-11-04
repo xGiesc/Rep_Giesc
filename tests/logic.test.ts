@@ -102,3 +102,30 @@ test('rotazione schede: prevista, giro, scadute', async () => {
   assert.equal(cycleState([C], []).next, null);
   assert.equal(cycleState([], []).next, null);
 });
+
+test('notifiche atleta e coach', async () => {
+  const { athleteNotifications, coachNotifications } = await import('../src/notifications');
+  const { toIsoDate } = await import('../src/expiry');
+  const day = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return toIsoDate(d); };
+  const ex = [{ id: 'e', name: 'x', sets: 1, reps: 1 }];
+  const a = athleteNotifications(
+    [
+      { id: 'P1', name: 'Push', exercises: ex, byPt: true, createdAt: new Date().toISOString(), expiresAt: day(3) },
+      { id: 'P2', name: 'Pull', exercises: ex, byPt: true, createdAt: '2020-01-01T00:00:00Z', expiresAt: day(-2) },
+      { id: 'P3', name: 'Leg', exercises: ex, createdAt: new Date().toISOString(), expiresAt: day(40) },
+    ],
+    [{ id: 's', planName: 'Push', planId: 'P1', date: new Date(Date.now() - 10 * 86400000).toISOString(), exercises: [] }],
+  );
+  const kinds = a.map((n) => n.kind).sort();
+  assert.deepEqual(kinds, ['inactive', 'plan_expired', 'plan_new', 'plan_soon']);
+  assert.ok(new Set(a.map((n) => n.id)).size === a.length, 'id unici');
+  assert.equal(a[0].kind, 'plan_expired', 'le scadute vengono prima');
+
+  const c = coachNotifications({
+    clients: [{ id: 'u1', name: 'Luca', email: null }, { id: 'u2', name: 'Anna', email: null }],
+    plans: [{ id: 'P1', name: 'Push', owner_id: 'u1', expires_at: day(2) }],
+    sessions: [{ id: 'S1', user_id: 'u1', plan_name: 'Push', date: new Date().toISOString() }],
+  });
+  assert.deepEqual(c.map((n) => n.kind).sort(), ['no_plan', 'plan_soon', 'workout_done']);
+  assert.equal(c.find((n) => n.kind === 'no_plan')!.athleteId, 'u2');
+});

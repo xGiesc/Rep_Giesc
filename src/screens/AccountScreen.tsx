@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Field, Header } from '../components';
 import { Profile, fetchProfile, joinPt, leavePt, updateName } from '../cloud';
+import { biometricAvailable, biometricEnabled, disableBiometric, enableBiometric } from '../biometric';
 import { PrivacyScreen } from './PrivacyScreen';
 import { supabase } from '../supabase';
 import { colors, spacing } from '../theme';
@@ -21,6 +22,12 @@ export function AccountScreen({
   const [msg, setMsg] = useState<string | null>(null);
   const [ptName, setPtName] = useState<string | null>(null);
   const [privacy, setPrivacy] = useState(false);
+  const [bioOk, setBioOk] = useState(false);
+  const [bioOn, setBioOn] = useState(() => biometricEnabled(profile.id));
+  const [bioMsg, setBioMsg] = useState<string | null>(null);
+  useEffect(() => {
+    biometricAvailable().then(setBioOk);
+  }, []);
 
   useEffect(() => {
     if (!profile.pt_id || profile.role === 'pt') return setPtName(null);
@@ -104,6 +111,30 @@ export function AccountScreen({
           </Card>
         ) : null}
 
+        {bioOk ? (
+          <Card style={{ gap: spacing.sm }}>
+            <Text style={styles.section}>Sblocco con impronta / Face ID</Text>
+            <Text style={styles.muted}>
+              Facoltativo: quando riapri l’app ti chiede impronta o Face ID. Vale solo su questo dispositivo.
+            </Text>
+            {bioMsg ? <Text style={styles.muted}>{bioMsg}</Text> : null}
+            <Button
+              label={bioOn ? 'Disattiva sblocco biometrico' : 'Attiva sblocco biometrico'}
+              variant={bioOn ? 'ghost' : 'primary'}
+              onPress={async () => {
+                setBioMsg(null);
+                if (bioOn) {
+                  disableBiometric(profile.id);
+                  setBioOn(false);
+                } else if (await enableBiometric(profile.id, profile.email ?? profile.name)) {
+                  setBioOn(true);
+                } else {
+                  setBioMsg('Attivazione non riuscita: riprova.');
+                }
+              }}
+            />
+          </Card>
+        ) : null}
         <Button label="Informativa privacy" variant="ghost" onPress={() => setPrivacy(true)} />
         <Button label="Esci" variant="danger" onPress={() => supabase?.auth.signOut()} />
       </ScrollView>

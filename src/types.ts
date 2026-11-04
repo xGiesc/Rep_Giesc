@@ -22,6 +22,8 @@ export type Plan = {
   byPt?: boolean;
   /** Fine validità della scheda (AAAA-MM-GG), decisa dal PT. */
   expiresAt?: string;
+  /** Data di creazione (solo account cloud). */
+  createdAt?: string;
 };
 
 export type SetLog = {

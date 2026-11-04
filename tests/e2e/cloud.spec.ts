@@ -26,7 +26,7 @@ async function setup(page: Page, role: Role, opts: { loggedIn?: boolean; expires
     exercises: [{ id: 'e1', name: 'Panca piana con bilanciere', dbId: 'panca-piana-bilanciere', sets: 4, reps: 8, rest: 90 }],
     owner_id: CLIENT_ID,
     created_by: PT_ID,
-    created_at: '2026-01-01',
+    created_at: new Date().toISOString(),
     expires_at: opts.expires ?? '2020-01-01',
   };
 
@@ -98,6 +98,18 @@ test.describe('login e ruoli', () => {
     await expect(page.getByText('Modifica', { exact: true })).toHaveCount(0);
     await expectNoOverflow(page, 'home atleta');
     await snap(page, info, 'atleta-home');
+    // campanella: scheda ricevuta
+    await expect(page.getByTestId('bell-count')).toHaveText('1');
+    await page.getByTestId('bell').click();
+    await expect(page.getByText('Nuova scheda ricevuta')).toBeVisible();
+    await expectNoOverflow(page, 'notifiche atleta');
+    await snap(page, info, 'atleta-notifiche');
+    await page.getByTestId('notif').first().click();
+    await page.getByText('‹ Indietro').click();
+    await expect(page.getByTestId('bell-count')).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByText('ALLENAMENTO PREVISTO')).toBeVisible();
+    await expect(page.getByTestId('bell-count')).toHaveCount(0); // lette: restano lette dopo la ricarica
     await page.getByText('Schede', { exact: true }).click();
     await expect(page.getByText('Push PT')).toBeVisible();
     await expect(page.getByText('Apri', { exact: true })).toHaveCount(1);
@@ -138,6 +150,18 @@ test.describe('login e ruoli', () => {
     await expectNoOverflow(page, 'home PT');
     await snap(page, info, 'pt-home');
 
+    // campanella del coach: scheda scaduta di Luca
+    await expect(page.getByTestId('bell-count')).toHaveText('1');
+    await page.getByTestId('bell').click();
+    await expect(page.getByText('Scheda scaduta', { exact: true })).toBeVisible();
+    await expect(page.getByText(/Luca: “Push PT” è scaduta/)).toBeVisible();
+    await snap(page, info, 'pt-notifiche');
+    await page.getByTestId('notif').first().click(); // apre l'atleta
+    await expect(page.getByTestId('filter-all')).toBeVisible();
+    await page.getByText('‹ Indietro').click();
+    await expect(page.getByText('I miei atleti')).toBeVisible();
+    await expect(page.getByTestId('bell-count')).toHaveCount(0);
+
     await page.getByText('Account', { exact: true }).click();
     await expect(page.getByText('ABC123')).toBeVisible();
     await page.getByText('Passa alla modalità allenamento').click();
@@ -151,11 +175,42 @@ test.describe('login e ruoli', () => {
     await expect(page.getByText('I miei atleti')).toBeVisible();
 
     await page.getByText('Luca').first().click();
-    await page.getByText('Schede', { exact: true }).click();
-    await page.getByTestId('filter-done').click();
+    // il coach vede subito tutte le schede (niente Home) e può aggiungerne
+    await expect(page.getByText('ALLENAMENTO PREVISTO')).toHaveCount(0);
+    await expect(page.getByTestId('filter-all')).toBeVisible();
+    await expect(page.getByText('+ Nuova scheda')).toBeVisible();
+    await expect(page.getByText(/Scaduta il/)).toBeVisible();
     await expect(page.getByText('Modifica', { exact: true })).toHaveCount(1);
     await expect(page.getByText('Inizia', { exact: true })).toHaveCount(0);
     await snap(page, info, 'pt-schede-atleta');
     expect(errors).toEqual([]);
+  });
+
+  test('sblocco biometrico facoltativo (autenticatore simulato)', async ({ page, context }) => {
+    await setup(page, 'client', { expires: '2099-01-01' });
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('WebAuthn.enable');
+    const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', {
+      options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true },
+    });
+    const URL = CLOUD.replace('127.0.0.1', 'localhost'); // WebAuthn non accetta indirizzi IP
+    await page.goto(URL);
+    await expect(page.getByText('ALLENAMENTO PREVISTO')).toBeVisible();
+    // di default nessun blocco; si attiva da Account
+    await page.getByText('Account', { exact: true }).click();
+    await page.getByText('Attiva sblocco biometrico').click();
+    await expect(page.getByText('Disattiva sblocco biometrico')).toBeVisible();
+    // alla riapertura l'app è bloccata e si sblocca con la biometria
+    await page.reload();
+    await expect(page.getByText('ALLENAMENTO PREVISTO')).toBeVisible({ timeout: 8000 }); // sblocco automatico riuscito
+    // con la verifica rifiutata (impronta sbagliata) l'app resta bloccata
+    await cdp.send('WebAuthn.setUserVerified', { authenticatorId, isUserVerified: false });
+    await page.reload();
+    await expect(page.getByText('App bloccata')).toBeVisible();
+    await expect(page.getByText('ALLENAMENTO PREVISTO')).toHaveCount(0);
+    // impronta giusta → "Sblocca" funziona
+    await cdp.send('WebAuthn.setUserVerified', { authenticatorId, isUserVerified: true });
+    await page.getByText('Sblocca', { exact: true }).click();
+    await expect(page.getByText('ALLENAMENTO PREVISTO')).toBeVisible();
   });
 });

@@ -37,7 +37,9 @@ export async function expectNoOverflow(page: Page, where: string) {
 
 /** Salva uno screenshot tra gli allegati del test (utile per dare un'occhiata a mano). */
 export async function snap(page: Page, info: TestInfo, name: string) {
-  await info.attach(name, { body: await page.screenshot(), contentType: 'image/png' });
+  const body = await page.screenshot();
+  if (process.env.SNAP_DIR) (await import('node:fs')).writeFileSync(`${process.env.SNAP_DIR}/${info.project.name}-${name}.png`, body);
+  await info.attach(name, { body, contentType: 'image/png' });
 }
 
 /** La banda nera col logo deve esserci, essere nera e mostrare l'immagine. */

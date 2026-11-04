@@ -5,14 +5,18 @@ import {
   SafeAreaProvider,
   SafeAreaView,
 } from 'react-native-safe-area-context';
-import { Profile, fetchProfile, useCloudPlans, useCloudSessions } from './src/cloud';
+import { Profile, fetchCoachData, fetchProfile, useCloudPlans, useCloudSessions } from './src/cloud';
+import { biometricEnabled } from './src/biometric';
+import { LockScreen } from './src/screens/LockScreen';
+import { NotificationsScreen } from './src/screens/NotificationsScreen';
+import { Notif, athleteNotifications, coachNotifications } from './src/notifications';
 import { Home, TabBar } from './src/Home';
 import { AccountScreen } from './src/screens/AccountScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { ClientsScreen } from './src/screens/ClientsScreen';
 import { useStoredState } from './src/storage';
 import { cloudEnabled, supabase } from './src/supabase';
-import { Banner } from './src/Banner';
+import { Banner, Bell } from './src/Banner';
 import { colors } from './src/theme';
 import { Plan, Session } from './src/types';
 import { setupWeb } from './src/webSetup';
@@ -107,6 +111,7 @@ function ClientView({ me, client, onBack }: { me: string; client: Profile; onBac
       plans={cp.plans}
       history={cs.sessions}
       canTrain={false}
+      coachMode
       plansTitle={`Schede di ${label}`}
       historyTitle={`Storico di ${label}`}
       onBack={onBack}
@@ -117,10 +122,22 @@ function ClientView({ me, client, onBack }: { me: string; client: Profile; onBac
 }
 
 function CloudApp({ userId }: { userId: string }) {
+  // Blocco facoltativo con impronta / Face ID: all'avvio e dopo 1 minuto in background
+  const [locked, setLocked] = useState(() => biometricEnabled(userId));
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    let hiddenAt = 0;
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') hiddenAt = Date.now();
+      else if (hiddenAt && Date.now() - hiddenAt > 60000 && biometricEnabled(userId)) setLocked(true);
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [userId]);
   return (
-    <Page>
-      <CloudAppInner userId={userId} />
-    </Page>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      {locked ? <LockScreen userId={userId} onUnlock={() => setLocked(false)} /> : <CloudAppInner userId={userId} />}
+    </View>
   );
 }
 
@@ -138,13 +155,60 @@ function CloudAppInner({ userId }: { userId: string }) {
   const mine = useCloudPlans(userId, userId);
   const sessions = useCloudSessions(userId);
 
-  if (!profile || !ptModeLoaded) return <Center><ActivityIndicator color={colors.accent} /></Center>;
-  if (client) return <ClientView me={userId} client={client} onBack={() => setClient(null)} />;
+  // --- notifiche (calcolate dai dati: scheda ricevuta, scadenze, promemoria…)
+  const isPt = profile?.role === 'pt';
+  const coachView = isPt && ptMode === 'manage';
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [read, setRead, readLoaded] = useStoredState<string[]>(`notif-read-${userId}`, []);
+  const [coach, setCoach] = useState<Awaited<ReturnType<typeof fetchCoachData>> | null>(null);
+  useEffect(() => {
+    if (!coachView) return;
+    let alive = true;
+    const load = () => fetchCoachData().then((d) => alive && setCoach(d)).catch(() => {});
+    load();
+    const t = setInterval(load, 60000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [coachView, client]);
+  const notifs: Notif[] = coachView
+    ? coach ? coachNotifications(coach.data) : []
+    : mine.loaded ? athleteNotifications(mine.plans, sessions.sessions) : [];
+  const unread = readLoaded ? notifs.filter((n) => !read.includes(n.id)).length : 0;
+  const bell = <Bell count={unread} onPress={() => setShowNotifs(true)} />;
+  const shell = (content: React.ReactNode) => (
+    <View style={{ flex: 1 }}>
+      <Banner right={bell} />
+      <View style={{ flex: 1 }}>{content}</View>
+    </View>
+  );
 
-  const isPt = profile.role === 'pt';
+  if (!profile || !ptModeLoaded) return <Center><ActivityIndicator color={colors.accent} /></Center>;
+  if (showNotifs) {
+    return shell(
+      <NotificationsScreen
+        items={notifs}
+        read={read}
+        onRead={(id) => setRead((p) => (p.includes(id) ? p : [...p, id]))}
+        onReadAll={() => setRead((p) => Array.from(new Set([...p, ...notifs.map((n) => n.id)])))}
+        onOpen={(n) => {
+          if (coachView && n.athleteId) {
+            const c = coach?.profiles.find((x) => x.id === n.athleteId);
+            if (c) {
+              setShowNotifs(false);
+              setClient(c);
+            }
+          }
+        }}
+        onBack={() => setShowNotifs(false)}
+      />,
+    );
+  }
+  if (client) return shell(<ClientView me={userId} client={client} onBack={() => setClient(null)} />);
 
   if (isPt && ptMode === 'manage') {
-    return (
+    return shell(
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
           {ptTab === 'clients' ? (
@@ -169,11 +233,11 @@ function CloudAppInner({ userId }: { userId: string }) {
           active={ptTab}
           onChange={(k) => setPtTab(k as 'clients' | 'account')}
         />
-      </View>
+      </View>,
     );
   }
 
-  return (
+  return shell(
     <Home
       plans={mine.plans}
       history={sessions.sessions}
@@ -206,7 +270,7 @@ function CloudAppInner({ userId }: { userId: string }) {
           ),
         },
       ]}
-    />
+    />,
   );
 }
 
