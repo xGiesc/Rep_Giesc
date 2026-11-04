@@ -35,9 +35,6 @@ const IMAGE_BASE =
 export const imageUrl = (id: string, index: number) =>
   `${IMAGE_BASE}/${encodeURIComponent(id)}/${index}.jpg`;
 
-export const videoSearchUrl = (name: string) =>
-  'https://www.youtube.com/results?search_query=' +
-  encodeURIComponent(`${name} exercise form tutorial`);
 
 // ---- Etichette in italiano -------------------------------------------------
 

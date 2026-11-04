@@ -6,7 +6,7 @@ App per gestire gli allenamenti in palestra (stile Coach Plus): crei le tue sche
 
 - **Schede**: crea, modifica ed elimina schede; gli esercizi si scelgono da un elenco di 876 esercizi (ricerca per nome, filtro per muscolo e attrezzo) oppure con un nome personalizzato. Per ogni esercizio imposti serie, ripetizioni e **tempo di recupero**
 - **Allenamento**: per ogni serie inserisci kg e ripetizioni e spunti il completamento; i kg vengono precompilati con l'ultimo carico usato. Alla spunta parte il **timer di recupero** a video (−15 / +15 secondi, Salta); a fine tempo suona e vibra (dove il dispositivo lo permette). Lo schermo resta acceso durante l'allenamento
-- **Scheda esercizio** ("Video e info"): immagini della posizione di partenza e di arrivo, muscoli coinvolti, istruzioni e pulsante per cercare il video su YouTube
+- **Scheda esercizio** ("Video e info"): per i movimenti principali (circa 115 esercizi su 876) un omino animato disegnato dall’app, con i muscoli in rosso; per gli altri le foto di partenza e arrivo. Sempre muscoli coinvolti e istruzioni (animazioni schematiche, non video reali)
 - **Storico**: allenamenti passati con serie e volume totale (kg × ripetizioni)
 - Dati salvati sul dispositivo (su web nel browser), nessun account necessario
 
@@ -55,6 +55,7 @@ App.tsx                      navigazione e stato globale
 src/types.ts                 tipi (Plan, Exercise, Session)
 src/storage.ts               salvataggio persistente
 src/exerciseDb.ts            ricerca esercizi, immagini, etichette in italiano
+src/anim/                    motore delle animazioni SVG, movimenti e abbinamento agli esercizi
 src/useRestTimer.ts          timer di recupero
 src/feedback.ts              bip, vibrazione, schermo acceso
 src/components.tsx           componenti UI condivisi

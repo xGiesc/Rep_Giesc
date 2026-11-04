@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   Image,
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { Button, Card, Chip, Header } from '../components';
+import { Card, Chip, Header } from '../components';
 import { fmtRest } from '../format';
 import {
   LEVEL_IT,
@@ -15,13 +14,15 @@ import {
   findExercise,
   imageUrl,
   muscleLabel,
-  videoSearchUrl,
 } from '../exerciseDb';
 import { colors, spacing } from '../theme';
+import { ExerciseAnimation } from '../anim/ExerciseAnimation';
+import { animationFor } from '../anim/mapping';
 
 /**
  * Scheda dell'esercizio: immagini che si alternano (posizione di partenza e di
- * arrivo), muscoli, istruzioni e link per cercare il video su YouTube.
+ * arrivo), muscoli e istruzioni. Se esiste un'animazione disegnata dall'app
+ * per quel movimento, viene mostrata al posto delle foto.
  */
 export function ExerciseDetail({
   name,
@@ -39,6 +40,7 @@ export function ExerciseDetail({
   onClose: () => void;
 }) {
   const ex = findExercise(dbId, name);
+  const anim = ex ? animationFor(ex) : null;
   const [frame, setFrame] = useState(0);
   const [imgFailed, setImgFailed] = useState(false);
 
@@ -57,7 +59,19 @@ export function ExerciseDetail({
           In scheda: {sets} serie × {reps} ripetizioni · recupero {fmtRest(rest)}
         </Text>
 
-        {ex && frames > 0 && !imgFailed ? (
+        {ex && anim ? (
+          <View style={[styles.media, { paddingBottom: 0 }]}>
+            <ExerciseAnimation
+              pattern={anim.pattern}
+              impl={anim.impl}
+              primary={ex.primaryMuscles}
+              secondary={ex.secondaryMuscles}
+            />
+            <Text style={[styles.mediaHint, { marginVertical: spacing.sm }]}>
+              Animazione schematica · in rosso i muscoli che lavorano
+            </Text>
+          </View>
+        ) : ex && frames > 0 && !imgFailed ? (
           <View style={styles.media}>
             <Image
               source={{ uri: imageUrl(ex.id, frame) }}
@@ -78,11 +92,6 @@ export function ExerciseDetail({
             </Text>
           </View>
         )}
-
-        <Button
-          label="▶ Guarda video su YouTube"
-          onPress={() => Linking.openURL(videoSearchUrl(ex?.name ?? name))}
-        />
 
         {ex ? (
           <>
