@@ -3,17 +3,17 @@ import { brand } from './brand';
 export const colors = {
   bg: '#ffffff',
   card: '#ffffff',
-  cardAlt: '#f4f4f7',
-  border: '#e4e4ea',
-  ink: '#14141a',
-  text: '#14141a',
-  muted: '#6b6b76',
+  cardAlt: brand.cardAlt,
+  border: brand.border,
+  ink: brand.ink,
+  text: brand.ink,
+  muted: brand.muted,
   accent: brand.accent,
   accentInk: brand.accentInk,
   accentSoft: brand.accentSoft,
   accentText: brand.accentText,
-  success: '#14141a',
-  danger: '#14141a',
+  success: brand.ink,
+  danger: brand.ink,
 };
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 };

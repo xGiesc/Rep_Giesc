@@ -6,6 +6,7 @@ import { BRAND, brand } from './brand';
 const LOGOS = {
   red: require('../assets/logo-red.png'),
   cyan: require('../assets/logo-cyan.png'),
+  amber: require('../assets/logo-amber.png'),
 };
 
 /**
