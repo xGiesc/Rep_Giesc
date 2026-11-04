@@ -1,4 +1,4 @@
-import { brand } from '../brand';
+import { DARK, brand } from '../brand';
 /**
  * Motore delle animazioni dell'omino (vista laterale, tutto in SVG).
  *
@@ -29,13 +29,13 @@ export const LEN = {
 };
 
 export const COLORS = {
-  bg: '#f3f3f6',
-  floor: '#dcdce2',
+  bg: DARK ? '#262624' : '#f3f3f6',
+  floor: DARK ? '#4a4a47' : '#dcdce2',
   body: '#cfd1d8',
   bodyFar: '#a3a6b0',
   torso: '#b8bbc4',
   head: '#dadde3',
-  outline: '#4d515c',
+  outline: DARK ? '#161618' : '#4d515c',
   red: brand.accent,
   metal: '#5a6070',
   plate: '#30343f',

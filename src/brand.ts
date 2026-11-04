@@ -11,3 +11,6 @@ const BRANDS = {
 } as const;
 
 export const brand = BRANDS[BRAND];
+
+/** Tema scuro (antracite): EXPO_PUBLIC_THEME=dark in fase di build. */
+export const DARK = process.env.EXPO_PUBLIC_THEME === 'dark';

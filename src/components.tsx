@@ -29,7 +29,7 @@ export function Button({
     variant === 'primary'
       ? colors.accent
       : variant === 'danger'
-        ? colors.danger
+        ? '#14141a'
         : colors.card;
   return (
     <Pressable
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#f0f0f4',
+    borderColor: colors.border,
     ...shadow,
   },
   label: { color: colors.muted, fontSize: 12, fontWeight: '600' },
@@ -241,10 +241,10 @@ const styles = StyleSheet.create({
   },
   chipText: { color: colors.text, fontSize: 13, fontWeight: '600' },
   timerBar: {
-    backgroundColor: colors.ink,
+    backgroundColor: '#14141a',
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.ink,
+    borderColor: '#14141a',
     padding: spacing.md,
     gap: spacing.sm,
     shadowColor: '#000',
