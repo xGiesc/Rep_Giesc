@@ -12,6 +12,9 @@ import { WorkoutScreen } from './src/screens/WorkoutScreen';
 import { useStoredState } from './src/storage';
 import { colors, spacing } from './src/theme';
 import { Plan, Session } from './src/types';
+import { setupWeb } from './src/webSetup';
+
+setupWeb();
 
 type Route =
   | { name: 'tabs' }

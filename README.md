@@ -9,7 +9,22 @@ App per gestire gli allenamenti in palestra (stile Coach Plus): crei le tue sche
 - **Storico**: allenamenti passati con serie e volume totale (kg × ripetizioni)
 - Dati salvati sul dispositivo (su web nel browser), nessun account necessario
 
-## Avvio sul PC
+## Provala online (nessuna installazione)
+
+Dopo ogni push su `main` l'app viene pubblicata automaticamente su GitHub Pages:
+
+**https://xgiesc.github.io/Rep_Giesc/**
+
+Aprila dal browser del PC o del telefono. Per averla come app:
+
+- **iPhone (Safari)**: Condividi → *Aggiungi a schermata Home*
+- **Android (Chrome)**: menu ⋮ → *Installa app* / *Aggiungi a schermata Home*
+
+I dati restano salvati nel browser del dispositivo che usi.
+
+> Prima pubblicazione: su GitHub vai in *Settings → Pages* e come *Source* scegli **GitHub Actions**.
+
+## Avvio sul PC (sviluppo, serve Node.js)
 
 ```bash
 npm install
