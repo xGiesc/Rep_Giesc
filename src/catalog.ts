@@ -4,11 +4,13 @@
  * I muscoli di default dipendono dal movimento (vedi MOVEMENT_MUSCLES).
  */
 import type { Implement } from './anim/engine';
+import { EXTRA_MUSCLES, EXTRA_ROWS, EXTRA_STEPS } from './catalogExtra';
 
 export type Level = 'beginner' | 'intermediate' | 'expert';
 export type Equip = 'barbell' | 'dumbbell' | 'body only' | 'cable' | 'machine' | 'kettlebells';
 
 export const MOVEMENT_MUSCLES: Record<string, [string[], string[]]> = {
+  ...EXTRA_MUSCLES,
   bench_press: [['chest'], ['shoulders', 'triceps']],
   incline_press: [['chest'], ['shoulders', 'triceps']],
   chest_press_machine: [['chest'], ['shoulders', 'triceps']],
@@ -46,6 +48,7 @@ export const MOVEMENT_MUSCLES: Record<string, [string[], string[]]> = {
 
 /** Istruzioni di base per movimento (italiano). */
 export const MOVEMENT_STEPS: Record<string, string[]> = {
+  ...EXTRA_STEPS,
   bench_press: [
     'Sdraiati sulla panca con i piedi ben appoggiati a terra, scapole addotte e leggermente depresse.',
     'Afferra il carico con una presa poco più larga delle spalle e portalo sopra il petto con le braccia tese.',
@@ -425,7 +428,7 @@ const IMPL: Record<Equip, Implement> = {
   kettlebells: 'kettlebell',
 };
 
-export const CATALOG: CatalogExercise[] = ROWS.map(
+export const CATALOG: CatalogExercise[] = [...ROWS, ...EXTRA_ROWS].map(
   ([id, name, movement, equipment, level, note, muscles]) => {
     const [primary, secondary] = muscles ?? MOVEMENT_MUSCLES[movement];
     const steps = [...MOVEMENT_STEPS[movement]];

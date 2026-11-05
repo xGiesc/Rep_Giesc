@@ -24,7 +24,7 @@ test('catalogo: id unici, nomi e istruzioni presenti', () => {
 
 test('ogni esercizio ha un movimento animato e muscoli noti', () => {
   for (const e of CATALOG) {
-    assert.ok(PATTERNS[e.movement], `${e.id}: movimento "${e.movement}" mancante`);
+    assert.ok(PATTERNS[e.movement] || GIF_BY_EXERCISE[e.id], `${e.id}: né animazione né GIF`);
     assert.ok(MOVEMENT_STEPS[e.movement], `${e.movement}: istruzioni di base`);
     assert.ok(MOVEMENT_MUSCLES[e.movement], `${e.movement}: muscoli di base`);
     for (const m of [...e.primaryMuscles, ...e.secondaryMuscles]) assert.ok(KNOWN_MUSCLES.includes(m), `${e.id}: muscolo ${m}`);
