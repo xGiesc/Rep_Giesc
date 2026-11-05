@@ -36,12 +36,19 @@ test.describe('app locale', () => {
     await expect(page.getByText('Petto', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('4 serie × 8 rip. · recupero 2 min')).toBeVisible();
     await expect(page.getByText('YouTube')).toHaveCount(0);
-    const frame = () =>
-      page.evaluate(() => Array.from(document.querySelectorAll('svg line')).map((e) => e.getAttribute('x2') + ',' + e.getAttribute('y2')).join('|'));
-    expect(await page.locator('svg line, svg circle, svg rect').count()).toBeGreaterThan(10);
-    const f1 = await frame();
-    await page.waitForTimeout(900);
-    expect(await frame(), "l'animazione si muove").not.toBe(f1);
+    // la GIF della libreria è mostrata e il file esiste davvero
+    const gifEl = page.getByTestId('exercise-gif');
+    await expect(gifEl).toBeVisible();
+    const gifInfo = await gifEl.evaluate(async (el) => {
+      const bg = getComputedStyle(el).backgroundImage;
+      const img = el.querySelector('img');
+      const url = (bg.match(/url\("?([^")]+)"?\)/)?.[1] ?? img?.getAttribute('src')) as string;
+      const r = await fetch(url);
+      return { url, ok: r.ok, type: r.headers.get('content-type'), size: (await r.arrayBuffer()).byteLength };
+    });
+    expect(gifInfo.ok, gifInfo.url).toBe(true);
+    expect(gifInfo.type).toContain('image/gif');
+    expect(gifInfo.size).toBeGreaterThan(2000);
     await expectNoOverflow(page, 'dettaglio esercizio');
     await snap(page, info, '02-dettaglio-animazione');
     await page.getByText('‹ Indietro').click();
@@ -142,5 +149,17 @@ test.describe('app locale', () => {
     await page.getByText('Apri', { exact: true }).click();
     await page.getByText('Video e info ›').click();
     await expect(page.getByText('Animazione schematica')).toBeVisible();
+  });
+
+  test('esercizio senza GIF nella libreria: ripiega sull’animazione dell’app', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('plans', JSON.stringify([{ id: 'p', name: 'Mia', exercises: [{ id: 'e', name: 'Iperestensioni (panca per lombari)', dbId: 'iperestensioni', sets: 3, reps: 10, rest: 60 }] }]));
+      localStorage.setItem('seeded', 'true');
+    });
+    await page.goto(LOCAL);
+    await page.getByText('Apri', { exact: true }).click();
+    await page.getByText('Video e info ›').click();
+    await expect(page.getByTestId('exercise-gif')).toHaveCount(0);
+    expect(await page.locator('svg path').count()).toBeGreaterThan(30);
   });
 });

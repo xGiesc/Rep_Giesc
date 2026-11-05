@@ -7,6 +7,8 @@ import { CATALOG, MOVEMENT_MUSCLES, MOVEMENT_STEPS } from '../src/catalog';
 import { daysLeft, expiryInfo, inWeeks, toIsoDate } from '../src/expiry';
 import { findExercise, searchExercises } from '../src/exerciseDb';
 import { KNOWN_MUSCLES } from '../src/anim/engine';
+import { existsSync } from 'node:fs';
+import { GIF_BY_EXERCISE, GIF_BY_MOVEMENT } from '../src/exerciseGifs';
 
 test('catalogo: id unici, nomi e istruzioni presenti', () => {
   const ids = new Set(CATALOG.map((e) => e.id));
@@ -135,4 +137,13 @@ test('notifiche atleta e coach', async () => {
   });
   assert.deepEqual(c.map((n) => n.kind).sort(), ['no_plan', 'plan_soon', 'workout_done']);
   assert.equal(c.find((n) => n.kind === 'no_plan')!.athleteId, 'u2');
+});
+
+test('GIF della libreria: i file esistono e quasi tutto il catalogo ne ha una', () => {
+  for (const f of [...Object.values(GIF_BY_EXERCISE), ...Object.values(GIF_BY_MOVEMENT)]) {
+    assert.ok(existsSync(`public/gifs/${f}`), `GIF mancante: ${f}`);
+  }
+  for (const id of Object.keys(GIF_BY_EXERCISE)) assert.ok(findExercise(id), `esercizio sconosciuto: ${id}`);
+  const without = CATALOG.filter((e) => !GIF_BY_EXERCISE[e.id] && !GIF_BY_MOVEMENT[e.movement]);
+  assert.deepEqual(without.map((e) => e.id), ['iperestensioni']);
 });

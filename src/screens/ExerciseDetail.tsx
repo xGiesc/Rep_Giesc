@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { brand } from '../brand';
 import { Card, Chip, Header } from '../components';
 import { fmtRest } from '../format';
@@ -7,6 +7,7 @@ import { LEVEL_IT, equipmentLabel, findExercise, muscleLabel } from '../exercise
 import { colors, radius, shadow, spacing } from '../theme';
 import { ExerciseAnimation } from '../anim/ExerciseAnimation';
 import { animationFor, animationForName } from '../anim/mapping';
+import { gifFor, gifUrl } from '../exerciseGifs';
 
 /** Scheda dell'esercizio: animazione, muscoli e istruzioni. */
 export function ExerciseDetail({
@@ -27,6 +28,7 @@ export function ExerciseDetail({
   const ex = findExercise(dbId, name);
   const custom = !ex ? animationForName(name) : null;
   const anim = ex ? animationFor(ex) : custom;
+  const gif = Platform.OS === 'web' ? gifFor(ex?.id, anim?.pattern) : null;
   const primary = ex ? ex.primaryMuscles : custom?.primary ?? [];
   const secondary = ex ? ex.secondaryMuscles : custom?.secondary ?? [];
 
@@ -42,14 +44,26 @@ export function ExerciseDetail({
 
         {anim ? (
           <View style={styles.media}>
-            <ExerciseAnimation
-              pattern={anim.pattern}
-              impl={anim.impl}
-              primary={primary}
-              secondary={secondary}
-            />
+            {gif ? (
+              <View style={styles.gifBox}>
+                <Image
+                  testID="exercise-gif"
+                  source={{ uri: gifUrl(gif) }}
+                  style={styles.gif}
+                  resizeMode="contain"
+                  accessibilityLabel={`Animazione: ${ex?.name ?? name}`}
+                />
+              </View>
+            ) : (
+              <ExerciseAnimation
+                pattern={anim.pattern}
+                impl={anim.impl}
+                primary={primary}
+                secondary={secondary}
+              />
+            )}
             <Text style={styles.mediaHint}>
-              Animazione schematica · in rosso i muscoli che lavorano
+              Animazione schematica · in rosso il muscolo che lavora
             </Text>
           </View>
         ) : (
@@ -99,6 +113,8 @@ export function ExerciseDetail({
 }
 
 const styles = StyleSheet.create({
+  gifBox: { width: '100%', backgroundColor: '#ffffff', alignItems: 'center' },
+  gif: { width: '100%', maxWidth: 420, aspectRatio: 1 },
   body: { padding: spacing.lg, gap: spacing.md },
   planPill: {
     alignSelf: 'flex-start',
