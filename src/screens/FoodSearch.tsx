@@ -6,6 +6,7 @@ import {
   Entry, MEALS, MealKey, entryMacros, foodToEntry, lookupBarcode, num, r1, searchOff,
 } from '../nutrition';
 import { colors, radius, spacing } from '../theme';
+import { BarcodeScanner, scannerSupported } from './BarcodeScanner';
 import { newId } from '../types';
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -101,6 +102,8 @@ function Search({
   const [q, setQ] = useState('');
   const [online, setOnline] = useState<Food[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'done'>('idle');
+  const [scanning, setScanning] = useState(false);
+  const scanned = useRef(false);
   const seq = useRef(0);
   const query = q.trim();
 
@@ -118,7 +121,13 @@ function Search({
         const res = /^\d{8,14}$/.test(query)
           ? await lookupBarcode(query, ctl.signal).then((x) => (x ? [x] : []))
           : await searchOff(query, ctl.signal);
-        if (seq.current === my) { setOnline(res); setStatus('done'); }
+        if (seq.current === my) {
+          setOnline(res);
+          setStatus('done');
+          // codice letto con la fotocamera e prodotto trovato: si passa subito alla quantità
+          if (scanned.current && res.length === 1) onPick(res[0]);
+          scanned.current = false;
+        }
       } catch {
         if (seq.current === my && !ctl.signal.aborted) setStatus('error');
       }
@@ -130,6 +139,19 @@ function Search({
   const base = useMemo(() => matches(BASE_FOODS, query), [query]);
   const rec = useMemo(() => (query ? [] : recents.slice(0, 12)), [query, recents]);
   const label = MEALS.find((m) => m.key === meal)?.label ?? '';
+
+  if (scanning) {
+    return (
+      <BarcodeScanner
+        onClose={() => setScanning(false)}
+        onCode={(code) => {
+          scanned.current = true;
+          setScanning(false);
+          setQ(code);
+        }}
+      />
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -145,6 +167,7 @@ function Search({
         />
       </View>
       <ScrollView contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled">
+        {scannerSupported() ? <Button label="Scansiona codice a barre" onPress={() => setScanning(true)} testID="scan-btn" /> : null}
         <Button label="+ Crea un alimento" variant="ghost" onPress={onCustom} />
         <Text style={styles.muted}>Gli alimenti comuni sono riferiti al peso a crudo: pesa pasta, riso, carne e pesce prima di cuocerli.</Text>
         {rec.length ? <Section title="Recenti">{rec.map((f) => <FoodRow key={f.id} food={f} onPress={() => onPick(f)} />)}</Section> : null}
@@ -158,7 +181,7 @@ function Search({
           <Section title="Prodotti confezionati (Open Food Facts)">
             {status === 'loading' ? <ActivityIndicator color={colors.accent} style={{ margin: spacing.md }} /> : null}
             {status === 'error' ? <Text style={styles.muted}>Ricerca online non disponibile: controlla la connessione. Gli alimenti comuni restano utilizzabili.</Text> : null}
-            {status === 'done' && online.length === 0 ? <Text style={styles.muted}>Nessun prodotto trovato. Puoi crearlo a mano con «Crea un alimento».</Text> : null}
+            {status === 'done' && online.length === 0 ? <Text style={styles.muted}>Nessun prodotto trovato. Puoi crearlo a mano con «Crea un alimento» (i dati sono sull’etichetta).</Text> : null}
             {online.map((f) => <FoodRow key={f.id} food={f} onPress={() => onPick(f)} />)}
           </Section>
         ) : !rec.length && !mine.length ? (

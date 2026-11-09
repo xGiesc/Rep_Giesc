@@ -255,4 +255,55 @@ test.describe('app locale', () => {
 
     expect(errors, 'errori JS in console').toEqual([]);
   });
+  test('codice a barre: la fotocamera legge il prodotto e apre la quantità', async ({ page }) => {
+    const errors = trackErrors(page);
+    const code = '8001234567897'; // EAN-13 valido (cifra di controllo corretta)
+    let asked = '';
+    await page.route('**://world.openfoodfacts.org/**', (r) => {
+      asked = r.request().url();
+      return r.fulfill({
+        status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify({ status: 1, product: { product_name: 'Prodotto Scansionato', brands: 'Marca', serving_quantity: 25, nutriments: { 'energy-kcal_100g': 400, proteins_100g: 10, carbohydrates_100g: 60, fat_100g: 12 } } }),
+      });
+    });
+    // fotocamera finta: un video generato da un canvas che disegna il codice EAN-13
+    await page.addInitScript((digits: string) => {
+      const L = ['0001101','0011001','0010011','0111101','0100011','0110001','0101111','0111011','0110111','0001011'];
+      const G = ['0100111','0110011','0011011','0100001','0011101','0111001','0000101','0010001','0001001','0010111'];
+      const R = ['1110010','1100110','1101100','1000010','1011100','1001110','1010000','1000100','1001000','1110100'];
+      const PAR = ['LLLLLL','LLGLGG','LLGGLG','LLGGGL','LGLLGG','LGGLLG','LGGGLL','LGLGLG','LGLGGL','LGGLGL'];
+      const d = digits.split('').map(Number);
+      let bits = '101';
+      for (let i = 1; i <= 6; i++) bits += (PAR[d[0]][i - 1] === 'L' ? L : G)[d[i]];
+      bits += '01010';
+      for (let i = 7; i <= 12; i++) bits += R[d[i]];
+      bits += '101';
+      const cv = document.createElement('canvas');
+      cv.width = 640; cv.height = 480;
+      const g = cv.getContext('2d')!;
+      const draw = () => {
+        g.fillStyle = '#fff'; g.fillRect(0, 0, 640, 480);
+        const w = 4, x0 = (640 - bits.length * w) / 2;
+        g.fillStyle = '#000';
+        [...bits].forEach((b, i) => b === '1' && g.fillRect(x0 + i * w, 140, w, 200));
+      };
+      draw();
+      setInterval(draw, 100);
+      const stream = (cv as any).captureStream(15);
+      (navigator.mediaDevices as any).getUserMedia = async () => stream;
+    }, code);
+
+    await page.goto(LOCAL);
+    await page.getByText('Dieta', { exact: true }).click();
+    await page.getByTestId('add-pranzo').click();
+    await page.getByTestId('scan-btn').click();
+    // letto il codice → ricerca del prodotto → schermata della quantità
+    await expect(page.getByText('Prodotto Scansionato')).toBeVisible({ timeout: 15000 });
+    expect(asked).toContain(code);
+    await expect(page.getByTestId('food-grams')).toHaveValue('25');
+    await expect(page.getByTestId('food-total')).toContainText('100 kcal');
+    await page.getByText('Aggiungi', { exact: true }).click();
+    await expect(page.getByTestId('kcal-eaten')).toHaveText('100');
+    expect(errors, 'errori JS in console').toEqual([]);
+  });
 });
