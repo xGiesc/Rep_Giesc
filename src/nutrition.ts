@@ -198,10 +198,19 @@ async function getJson<T>(url: string, signal?: AbortSignal, tries = 2): Promise
   throw last;
 }
 
+/** Cerca prima tra i prodotti venduti in Italia (più popolari in alto); se sono pochi, completa con il resto del mondo. */
 export async function searchOff(query: string, signal?: AbortSignal): Promise<Food[]> {
-  const url = `${OFF}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=25&lc=it&fields=${FIELDS}`;
-  const data = await getJson<{ products?: OffProduct[] }>(url, signal);
-  return (data.products ?? []).map(parseOffProduct).filter((x): x is Food => !!x);
+  const base = `${OFF}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&lc=it&fields=${FIELDS}`;
+  const parse = (d: { products?: OffProduct[] }) =>
+    (d.products ?? []).map(parseOffProduct).filter((x): x is Food => !!x);
+  type R = { products?: OffProduct[] };
+  const italy = parse(
+    await getJson<R>(`${base}&tagtype_0=countries&tag_contains_0=contains&tag_0=italy&sort_by=unique_scans_n&page_size=30`, signal),
+  );
+  if (italy.length >= 8) return italy;
+  const world = parse(await getJson<R>(`${base}&sort_by=unique_scans_n&page_size=20`, signal).catch((): R => ({})));
+  const seen = new Set(italy.map((f) => f.id));
+  return [...italy, ...world.filter((f) => !seen.has(f.id))];
 }
 
 export async function lookupBarcode(code: string, signal?: AbortSignal): Promise<Food | null> {
