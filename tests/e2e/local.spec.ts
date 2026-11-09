@@ -162,4 +162,97 @@ test.describe('app locale', () => {
     await expect(page.getByTestId('exercise-gif')).toHaveCount(0);
     expect(await page.locator('svg path').count()).toBeGreaterThan(30);
   });
+  test('diario alimentare: obiettivi, alimenti comuni, prodotto online, alimento creato, modifica e persistenza', async ({ page }, info) => {
+    const errors = trackErrors(page);
+    await page.route('**://world.openfoodfacts.org/**', (r) =>
+      r.fulfill({
+        status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify({ products: [
+          { code: '111', product_name: 'Biscotti Test', brands: 'Marca', serving_quantity: 30, nutriments: { 'energy-kcal_100g': 450, proteins_100g: 6, carbohydrates_100g: 70, fat_100g: 16 } },
+          { code: '222', product_name: 'Incompleto', nutriments: {} },
+        ] }),
+      }),
+    );
+    await page.goto(LOCAL);
+    await page.getByText('Dieta', { exact: true }).click();
+    await expect(page.getByText('Alimentazione', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('day-label')).toHaveText('Oggi');
+    await expect(page.getByText('Imposta un obiettivo')).toBeVisible();
+    await expectNoOverflow(page, 'dieta vuota');
+    await snap(page, info, '10-dieta-vuota');
+
+    // obiettivi (con calcolo automatico)
+    await page.getByTestId('goals-btn').click();
+    await page.getByTestId('goal-age').fill('30');
+    await page.getByTestId('goal-weight').fill('80');
+    await page.getByTestId('goal-height').fill('180');
+    await page.getByText('Calcola', { exact: true }).click();
+    expect(Number(await page.getByTestId('goal-kcal').inputValue())).toBeGreaterThan(2500);
+    await page.getByTestId('goal-kcal').fill('2000');
+    await page.getByTestId('goal-p').fill('150');
+    await page.getByTestId('goal-c').fill('200');
+    await page.getByTestId('goal-f').fill('60');
+    await expectNoOverflow(page, 'obiettivi');
+    await page.getByText('Salva obiettivo').click();
+    await expect(page.getByTestId('kcal-left')).toHaveText('2000');
+
+    // alimento comune a pranzo: riso 100 g = 332 kcal
+    await page.getByTestId('add-pranzo').click();
+    await page.getByTestId('food-search').fill('riso bianco');
+    await page.getByTestId('food-row').first().click();
+    await page.getByTestId('food-grams').fill('100');
+    await expect(page.getByTestId('food-total')).toContainText('332 kcal');
+    await expectNoOverflow(page, 'quantità');
+    await page.getByText('Aggiungi', { exact: true }).click();
+    await expect(page.getByTestId('kcal-eaten')).toHaveText('332');
+    await expect(page.getByTestId('kcal-left')).toHaveText('1668');
+
+    // prodotto confezionato (Open Food Facts) a colazione: 50 g = 225 kcal; quello incompleto è scartato
+    await page.getByTestId('add-colazione').click();
+    await page.getByTestId('food-search').fill('biscotti');
+    await expect(page.getByText('Biscotti Test')).toBeVisible();
+    await expect(page.getByText('Incompleto')).toHaveCount(0);
+    await page.getByText('Biscotti Test').click();
+    await page.getByTestId('food-grams').fill('50');
+    await expect(page.getByTestId('food-total')).toContainText('225 kcal');
+    await page.getByText('Aggiungi', { exact: true }).click();
+    await expect(page.getByTestId('kcal-eaten')).toHaveText('557');
+
+    // alimento creato a mano nello spuntino
+    await page.getByTestId('add-spuntino').click();
+    await page.getByText('+ Crea un alimento').click();
+    await page.getByTestId('custom-name').fill('Mio budino');
+    await page.getByTestId('custom-kcal').fill('100');
+    await page.getByTestId('custom-p').fill('4');
+    await page.getByTestId('custom-c').fill('15');
+    await page.getByTestId('custom-f').fill('2');
+    await page.getByText('Salva e scegli la quantità').click();
+    await page.getByTestId('food-grams').fill('200');
+    await page.getByText('Aggiungi', { exact: true }).click();
+    await expect(page.getByTestId('kcal-eaten')).toHaveText('757');
+    await expect(page.getByTestId('meal-spuntino')).toContainText('Mio budino');
+    await expectNoOverflow(page, 'diario pieno');
+    await snap(page, info, '11-dieta-piena');
+
+    // modifica la quantità e poi elimina
+    await page.getByTestId('meal-spuntino').getByTestId('entry').click();
+    await page.getByTestId('food-grams').fill('100');
+    await page.getByText('Aggiorna', { exact: true }).click();
+    await expect(page.getByTestId('kcal-eaten')).toHaveText('657');
+    await page.getByTestId('meal-colazione').getByTestId('entry').click();
+    await page.getByText('Elimina dal diario').click();
+    await expect(page.getByTestId('kcal-eaten')).toHaveText('432');
+
+    // giorno precedente vuoto, poi si torna a oggi; i dati restano dopo la ricarica
+    await page.getByTestId('day-prev').click();
+    await expect(page.getByTestId('day-label')).toHaveText('Ieri');
+    await expect(page.getByTestId('kcal-eaten')).toHaveText('0');
+    await page.getByTestId('day-next').click();
+    await page.reload();
+    await page.getByText('Dieta', { exact: true }).click();
+    await expect(page.getByTestId('kcal-eaten')).toHaveText('432');
+    await expect(page.getByTestId('kcal-left')).toHaveText('1568');
+
+    expect(errors, 'errori JS in console').toEqual([]);
+  });
 });

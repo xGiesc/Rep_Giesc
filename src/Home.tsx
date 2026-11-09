@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import type { NutritionData } from './nutritionStore';
 import { HistoryScreen } from './screens/HistoryScreen';
+import { NutritionScreen } from './screens/NutritionScreen';
 import { PlanEditor } from './screens/PlanEditor';
 import { PlanView } from './screens/PlanView';
 import { NextWorkout } from './screens/NextWorkout';
@@ -19,7 +21,7 @@ type Route =
 
 export type ExtraTab = { key: string; label: string; icon?: IconName; render: () => React.ReactNode };
 
-export type IconName = 'home' | 'plans' | 'history' | 'clients' | 'account';
+export type IconName = 'home' | 'plans' | 'history' | 'food' | 'clients' | 'account';
 
 /**
  * Schermate principali (schede, allenamento, storico) per un insieme di dati:
@@ -38,6 +40,8 @@ export function Home({
   onBack,
   extraTabs = [],
   coachMode = false,
+  nutrition,
+  nutritionWho,
 }: {
   plans: Plan[];
   onSavePlan: (p: Plan) => void;
@@ -52,6 +56,10 @@ export function Home({
   extraTabs?: ExtraTab[];
   /** Il coach guarda un atleta: niente Home, si parte dall'elenco di tutte le schede. */
   coachMode?: boolean;
+  /** Diario alimentare (se presente compare la scheda «Dieta»). */
+  nutrition?: NutritionData;
+  /** Nome dell'atleta quando lo guarda il PT: diario in sola lettura, obiettivi modificabili. */
+  nutritionWho?: string;
 }) {
   const [tab, setTab] = useState<string>(coachMode ? 'plans' : 'home');
   const [route, setRoute] = useState<Route>({ name: 'tabs' });
@@ -115,6 +123,13 @@ export function Home({
             onAll={() => setTab('plans')}
             onBack={onBack}
           />
+        ) : tab === 'food' && nutrition ? (
+          <NutritionScreen
+            data={nutrition}
+            readOnly={!!nutritionWho}
+            who={nutritionWho}
+            onBack={nutritionWho ? onBack : undefined}
+          />
         ) : tab === 'plans' ? (
           <PlansScreen
             plans={plans}
@@ -138,6 +153,7 @@ export function Home({
           ...(coachMode ? [] : [{ key: 'home', label: 'Home', icon: 'home' as IconName }]),
           { key: 'plans', label: 'Schede', icon: 'plans' },
           { key: 'history', label: 'Storico', icon: 'history' },
+          ...(nutrition ? [{ key: 'food', label: 'Dieta', icon: 'food' as IconName }] : []),
           ...extraTabs.map((t) => ({ key: t.key, label: t.label, icon: t.icon ?? ('account' as IconName) })),
         ]}
         active={tab}
@@ -165,6 +181,11 @@ function Icon({ name, color }: { name: IconName; color: string }) {
         <>
           <Circle cx="12" cy="12" r="9" {...p} />
           <Path d="M12 7v5l3 2" {...p} />
+        </>
+      ) : name === 'food' ? (
+        <>
+          <Path d="M4 11h16a8 8 0 01-16 0z" {...p} />
+          <Path d="M8 7c0-1.5 1-1.5 1-3M12 7c0-1.5 1-1.5 1-3M16 7c0-1.5 1-1.5 1-3" {...p} />
         </>
       ) : name === 'clients' ? (
         <>

@@ -14,6 +14,7 @@ import { Home, TabBar } from './src/Home';
 import { AccountScreen } from './src/screens/AccountScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { ClientsScreen } from './src/screens/ClientsScreen';
+import { useCloudNutrition, useLocalNutrition } from './src/nutritionStore';
 import { useStoredState } from './src/storage';
 import { cloudEnabled, supabase } from './src/supabase';
 import { Banner, Bell } from './src/Banner';
@@ -86,10 +87,12 @@ function LocalAppInner() {
     }
   }, [plansLoaded, seededLoaded, seeded, plans.length, setPlans, setSeeded]);
 
+  const nutrition = useLocalNutrition();
   return (
     <Home
       plans={plans}
       history={history}
+      nutrition={nutrition}
       onSavePlan={(p) =>
         setPlans((prev) =>
           prev.some((x) => x.id === p.id) ? prev.map((x) => (x.id === p.id ? p : x)) : [...prev, p],
@@ -105,6 +108,7 @@ function LocalAppInner() {
 function ClientView({ me, client, onBack }: { me: string; client: Profile; onBack: () => void }) {
   const cp = useCloudPlans(client.id, me);
   const cs = useCloudSessions(client.id);
+  const cn = useCloudNutrition(client.id);
   const label = client.name || client.email || 'Cliente';
   return (
     <Home
@@ -112,6 +116,8 @@ function ClientView({ me, client, onBack }: { me: string; client: Profile; onBac
       history={cs.sessions}
       canTrain={false}
       coachMode
+      nutrition={cn}
+      nutritionWho={client.name || client.email || 'atleta'}
       plansTitle={`Schede di ${label}`}
       historyTitle={`Storico di ${label}`}
       onBack={onBack}
@@ -154,6 +160,7 @@ function CloudAppInner({ userId }: { userId: string }) {
 
   const mine = useCloudPlans(userId, userId);
   const sessions = useCloudSessions(userId);
+  const nutrition = useCloudNutrition(userId);
 
   // --- notifiche (calcolate dai dati: scheda ricevuta, scadenze, promemoria…)
   const isPt = profile?.role === 'pt';
@@ -244,6 +251,7 @@ function CloudAppInner({ userId }: { userId: string }) {
       onSavePlan={mine.save}
       onDeletePlan={mine.remove}
       onFinishSession={sessions.add}
+      nutrition={nutrition}
       canEdit={isPt}
       extraTabs={[
         {

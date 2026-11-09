@@ -228,3 +228,49 @@ test('tutte le tabelle hanno la sicurezza a livello di riga attiva', async () =>
   const r = await q(`select relname, relrowsecurity from pg_class where relnamespace='public'::regnamespace and relkind='r'`);
   for (const t of r.rows) assert.equal(t.relrowsecurity, true, `RLS spenta su ${t.relname}`);
 });
+
+test('diario alimentare: ognuno scrive i propri pasti, il PT li legge ma non li modifica', async () => {
+  await db.exec(`update public.profiles set pt_id='${PT}' where id='${LUCA}'`); // i test precedenti l'hanno scollegato
+  await as(LUCA, async () => {
+    assert.equal(await affected(`insert into public.nutrition_days(user_id,day,entries) values ('${LUCA}','2026-11-05','[{"name":"Pasta"}]')`), 1);
+    assert.ok(await denied(() => q(`insert into public.nutrition_days(user_id,day,entries) values ('${ANNA}','2026-11-05','[]')`)), 'pasti di altri');
+    assert.ok(await denied(() => q(`insert into public.nutrition_days(user_id,day,entries) values ('${LUCA}','2026-11-06','{"a":1}')`)), 'entries deve essere un array');
+    assert.equal((await q('select * from public.nutrition_days')).rows.length, 1);
+  });
+  await as(ANNA, async () => {
+    assert.equal((await q('select * from public.nutrition_days')).rows.length, 0, 'Anna non vede i pasti di Luca');
+    assert.equal(await affected(`update public.nutrition_days set entries='[]' where user_id='${LUCA}'`), 0);
+    assert.equal(await affected(`delete from public.nutrition_days where user_id='${LUCA}'`), 0);
+  });
+  await as(PT, async () => {
+    assert.equal((await q(`select * from public.nutrition_days where user_id='${LUCA}'`)).rows.length, 1, 'il PT legge i pasti del suo atleta');
+    assert.equal(await affected(`update public.nutrition_days set entries='[]' where user_id='${LUCA}'`), 0, 'il PT non modifica i pasti');
+    assert.equal(await affected(`delete from public.nutrition_days where user_id='${LUCA}'`), 0);
+  });
+  await as(PT2, async () => {
+    assert.equal((await q('select * from public.nutrition_days')).rows.length, 0, 'un altro PT non vede nulla');
+  });
+  await as(null, async () => {
+    assert.ok(await denied(() => q('select * from public.nutrition_days')), 'anonimo');
+  });
+});
+
+test('obiettivi: li impostano l’atleta e il suo PT, nessun altro', async () => {
+  await db.exec(`update public.profiles set pt_id='${PT}' where id='${LUCA}'`);
+  await as(PT, async () => {
+    assert.equal(await affected(`insert into public.nutrition_prefs(user_id,goals) values ('${LUCA}','{"kcal":2500,"by":"pt"}')`), 1, 'il PT imposta gli obiettivi dell’atleta');
+    assert.ok(await denied(() => q(`insert into public.nutrition_prefs(user_id,goals) values ('${ANNA}','{"kcal":1}')`)), 'atleta non suo');
+  });
+  await as(PT2, async () => {
+    assert.equal(await affected(`update public.nutrition_prefs set goals='{"kcal":1}' where user_id='${LUCA}'`), 0);
+    assert.equal((await q('select * from public.nutrition_prefs')).rows.length, 0);
+  });
+  await as(LUCA, async () => {
+    assert.equal((await q('select goals from public.nutrition_prefs')).rows.length, 1, 'l’atleta vede i propri obiettivi');
+    assert.equal(await affected(`update public.nutrition_prefs set goals='{"kcal":2300,"by":"self"}' where user_id='${LUCA}'`), 1);
+    assert.equal(await affected(`delete from public.nutrition_prefs where user_id='${LUCA}'`), 0, 'cancellazione non permessa');
+  });
+  await as(EVIL, async () => {
+    assert.ok(await denied(() => q(`insert into public.nutrition_prefs(user_id,goals) values ('${LUCA}','{"kcal":1}')`)), 'estraneo');
+  });
+});

@@ -147,3 +147,59 @@ test('GIF della libreria: i file esistono e quasi tutto il catalogo ne ha una', 
   const without = CATALOG.filter((e) => !GIF_BY_EXERCISE[e.id] && !GIF_BY_MOVEMENT[e.movement]);
   assert.deepEqual(without.map((e) => e.id), ['iperestensioni']);
 });
+
+import { BASE_FOODS } from '../src/foodsBase';
+import {
+  bmr, dayKey, entryMacros, parseOffProduct, shiftDay, suggestGoals, sumMacros, validProfile,
+} from '../src/nutrition';
+
+test('alimenti base: id e nomi unici, valori coerenti', () => {
+  assert.equal(new Set(BASE_FOODS.map((f) => f.id)).size, BASE_FOODS.length, 'id unici');
+  assert.equal(new Set(BASE_FOODS.map((f) => f.name.toLowerCase())).size, BASE_FOODS.length, 'nomi unici');
+  for (const f of BASE_FOODS) {
+    assert.ok(f.p + f.c + f.f <= 100.5, `${f.name}: macro > 100 g`);
+    // le kcal devono essere vicine a 4P+4C+9F (±25%, alcol e fibre a parte)
+    const est = f.p * 4 + f.c * 4 + f.f * 9;
+    if (est > 20 && !/vino|birra/i.test(f.name)) assert.ok(Math.abs(f.kcal - est) <= Math.max(12, est * 0.3), `${f.name}: kcal ${f.kcal} vs ${est.toFixed(0)}`);
+  }
+});
+
+test('calcolo di calorie e macro', () => {
+  const m = entryMacros({ grams: 150, kcal: 100, p: 22, c: 0, f: 1 });
+  assert.deepEqual([m.kcal, m.p, m.c, m.f], [150, 33, 0, 1.5]);
+  const t = sumMacros([{ grams: 200, kcal: 50, p: 1, c: 10, f: 0 }, { grams: 50, kcal: 400, p: 10, c: 0, f: 40 }]);
+  assert.equal(t.kcal, 300);
+  assert.equal(t.f, 20);
+});
+
+test('obiettivi suggeriti (Mifflin-St Jeor)', () => {
+  const prof = { sex: 'm', age: 30, weight: 80, height: 180, activity: 'moderate', aim: 'maintain' } as const;
+  assert.equal(Math.round(bmr(prof)), 1780);
+  const g = suggestGoals(prof);
+  assert.ok(g.kcal > 2700 && g.kcal < 2800, String(g.kcal));
+  assert.equal(g.p, 144);
+  assert.ok(Math.abs(g.p * 4 + g.c * 4 + g.f * 9 - g.kcal) < 30, 'i macro tornano con le kcal');
+  assert.ok(suggestGoals({ ...prof, aim: 'lose' }).kcal < g.kcal);
+  assert.ok(suggestGoals({ ...prof, aim: 'gain' }).kcal > g.kcal);
+  assert.ok(validProfile(prof));
+  assert.ok(!validProfile({ ...prof, weight: 5 }));
+});
+
+test('date del diario', () => {
+  assert.equal(shiftDay('2026-03-01', -1), '2026-02-28');
+  assert.equal(shiftDay('2026-12-31', 1), '2027-01-01');
+  assert.match(dayKey(), /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test('Open Food Facts: conversione e scarto dei prodotti incompleti', () => {
+  const ok = parseOffProduct({
+    code: '123', product_name: 'Biscotti', brands: 'Marca, Altra', serving_quantity: '30',
+    nutriments: { 'energy-kcal_100g': 450, proteins_100g: 6, carbohydrates_100g: 70, fat_100g: 16 },
+  });
+  assert.deepEqual([ok?.name, ok?.brand, ok?.kcal, ok?.serving], ['Biscotti', 'Marca', 450, 30]);
+  const kj = parseOffProduct({ product_name: 'X', nutriments: { energy_100g: 418.4, proteins_100g: 1, carbohydrates_100g: 1, fat_100g: 1 } });
+  assert.equal(kj?.kcal, 100);
+  assert.equal(parseOffProduct({ product_name: 'Senza dati', nutriments: { proteins_100g: 1 } }), null);
+  assert.equal(parseOffProduct({ nutriments: {} }), null);
+  assert.equal(parseOffProduct({ product_name: 'Assurdo', nutriments: { 'energy-kcal_100g': 5000, proteins_100g: 1, carbohydrates_100g: 1, fat_100g: 1 } }), null);
+});

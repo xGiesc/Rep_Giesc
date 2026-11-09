@@ -18,12 +18,14 @@ export function Button({
   variant = 'primary',
   disabled,
   style,
+  testID,
 }: {
   label: string;
   onPress: () => void;
   variant?: 'primary' | 'ghost' | 'danger';
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }) {
   const bg =
     variant === 'primary'
@@ -33,6 +35,7 @@ export function Button({
         : colors.card;
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
@@ -61,11 +64,13 @@ export function Button({
 export function Card({
   children,
   style,
+  testID,
 }: {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }) {
-  return <View style={[styles.card, style]}>{children}</View>;
+  return <View testID={testID} style={[styles.card, style]}>{children}</View>;
 }
 
 export function Field(props: TextInputProps & { label?: string; inputRef?: React.Ref<any> }) {

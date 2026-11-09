@@ -173,5 +173,55 @@ drop policy if exists sessions_delete on public.sessions;
 create policy sessions_delete on public.sessions for delete to authenticated
   using (user_id = auth.uid());
 
+
+-- ───────────────────────── diario alimentare ─────────────────────────
+-- un record per persona e per giorno (elenco dei pasti in JSON) + obiettivi e alimenti creati a mano
+create table if not exists public.nutrition_days (
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  day date not null,
+  entries jsonb not null default '[]',
+  updated_at timestamptz not null default now(),
+  primary key (user_id, day)
+);
+create table if not exists public.nutrition_prefs (
+  user_id uuid primary key references public.profiles(id) on delete cascade,
+  goals jsonb,
+  foods jsonb not null default '[]',
+  updated_at timestamptz not null default now()
+);
+alter table public.nutrition_days drop constraint if exists nutrition_days_limits;
+alter table public.nutrition_days add constraint nutrition_days_limits check (
+  jsonb_typeof(entries) = 'array' and jsonb_array_length(entries) <= 100 and pg_column_size(entries) <= 60000);
+alter table public.nutrition_prefs drop constraint if exists nutrition_prefs_limits;
+alter table public.nutrition_prefs add constraint nutrition_prefs_limits check (
+  jsonb_typeof(foods) = 'array' and jsonb_array_length(foods) <= 300 and pg_column_size(foods) <= 100000
+  and (goals is null or (jsonb_typeof(goals) = 'object' and pg_column_size(goals) <= 4000)));
+
+alter table public.nutrition_days enable row level security;
+alter table public.nutrition_prefs enable row level security;
+revoke all on public.nutrition_days, public.nutrition_prefs from anon, authenticated;
+grant select, insert, update, delete on public.nutrition_days to authenticated;
+grant select, insert, update on public.nutrition_prefs to authenticated;
+
+-- i pasti li scrive solo il proprietario; li legge anche il suo PT
+drop policy if exists nutrition_days_select on public.nutrition_days;
+create policy nutrition_days_select on public.nutrition_days for select to authenticated
+  using (user_id = auth.uid() or public.is_pt_of(user_id));
+drop policy if exists nutrition_days_write on public.nutrition_days;
+create policy nutrition_days_write on public.nutrition_days for all to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- gli obiettivi (e gli alimenti creati a mano) li scrive il proprietario oppure il suo PT
+drop policy if exists nutrition_prefs_select on public.nutrition_prefs;
+create policy nutrition_prefs_select on public.nutrition_prefs for select to authenticated
+  using (user_id = auth.uid() or public.is_pt_of(user_id));
+drop policy if exists nutrition_prefs_insert on public.nutrition_prefs;
+create policy nutrition_prefs_insert on public.nutrition_prefs for insert to authenticated
+  with check (user_id = auth.uid() or public.is_pt_of(user_id));
+drop policy if exists nutrition_prefs_update on public.nutrition_prefs;
+create policy nutrition_prefs_update on public.nutrition_prefs for update to authenticated
+  using (user_id = auth.uid() or public.is_pt_of(user_id))
+  with check (user_id = auth.uid() or public.is_pt_of(user_id));
+
 -- PER DIVENTARE PT (una volta, dopo esserti registrato nell'app):
 --   update public.profiles set role = 'pt' where email = 'LA-TUA-EMAIL';
