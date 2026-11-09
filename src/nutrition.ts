@@ -174,17 +174,38 @@ export function parseOffProduct(p: OffProduct): Food | null {
 const OFF = 'https://world.openfoodfacts.org';
 const FIELDS = 'code,product_name,product_name_it,brands,nutriments,serving_quantity';
 
+/** fetch con timeout e un secondo tentativo: il servizio pubblico a volte è lento o risponde 5xx. */
+async function getJson<T>(url: string, signal?: AbortSignal, tries = 2): Promise<T> {
+  let last: unknown = new Error('offline');
+  for (let i = 0; i < tries; i++) {
+    const ctl = new AbortController();
+    const abort = () => ctl.abort();
+    signal?.addEventListener('abort', abort);
+    const timer = setTimeout(abort, 9000);
+    try {
+      const res = await fetch(url, { signal: ctl.signal });
+      if (res.ok) return (await res.json()) as T;
+      last = new Error('HTTP ' + res.status);
+    } catch (e) {
+      if (signal?.aborted) throw e;
+      last = e;
+    } finally {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abort);
+    }
+    await new Promise((r) => setTimeout(r, 600));
+  }
+  throw last;
+}
+
 export async function searchOff(query: string, signal?: AbortSignal): Promise<Food[]> {
   const url = `${OFF}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=25&lc=it&fields=${FIELDS}`;
-  const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error('offline');
-  const data = (await res.json()) as { products?: OffProduct[] };
+  const data = await getJson<{ products?: OffProduct[] }>(url, signal);
   return (data.products ?? []).map(parseOffProduct).filter((x): x is Food => !!x);
 }
 
 export async function lookupBarcode(code: string, signal?: AbortSignal): Promise<Food | null> {
-  const res = await fetch(`${OFF}/api/v2/product/${encodeURIComponent(code)}.json?fields=${FIELDS}`, { signal });
-  if (!res.ok) throw new Error('offline');
-  const data = (await res.json()) as { status?: number; product?: OffProduct };
+  const data = await getJson<{ status?: number; product?: OffProduct }>(
+    `${OFF}/api/v2/product/${encodeURIComponent(code)}.json?fields=${FIELDS}`, signal);
   return data.status === 1 && data.product ? parseOffProduct({ ...data.product, code }) : null;
 }

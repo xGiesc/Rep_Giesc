@@ -146,6 +146,7 @@ function Search({
       </View>
       <ScrollView contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled">
         <Button label="+ Crea un alimento" variant="ghost" onPress={onCustom} />
+        <Text style={styles.muted}>Gli alimenti comuni sono riferiti al peso a crudo: pesa pasta, riso, carne e pesce prima di cuocerli.</Text>
         {rec.length ? <Section title="Recenti">{rec.map((f) => <FoodRow key={f.id} food={f} onPress={() => onPick(f)} />)}</Section> : null}
         {mine.length ? (
           <Section title="I miei alimenti">
@@ -218,6 +219,7 @@ function Quantity({
         <Card style={{ gap: spacing.xs }}>
           <Text style={styles.foodTitle}>{food.name}</Text>
           {food.brand ? <Text style={styles.muted}>{food.brand}</Text> : null}
+          {food.id.startsWith('base:') ? <Text style={styles.muted}>Peso a crudo, prima della cottura.</Text> : null}
           <Text style={styles.muted}>Per 100 g: {Math.round(food.kcal)} kcal · P {r1(food.p)} · C {r1(food.c)} · G {r1(food.f)}</Text>
         </Card>
         <Field
